@@ -1,0 +1,102 @@
+﻿@{ Layout = null; }
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Strip</title>
+    <link href="http://play.jok.io/css?ignore=1" rel="stylesheet" />
+    @Styles.Render("~/play/css")
+    <script>
+        var jok = {};
+
+        jok.config = {
+            sid: '@ViewBag.SID',
+            gameid: '@ViewBag.GameID',
+            channel: '@ViewBag.Channel',
+            language: '@ViewBag.Language',
+            isVIPMember: '@ViewBag.IsVIPMember' == 'True',
+            exitUrl: '@ViewBag.ExitUrl',
+            authorizationUrl: '@ViewBag.AuthorizationUrl',
+            isMobileDevice: @Request.Browser.IsMobileDevice.ToString().ToLower(),
+            audios: '@Url.Content("~/Content/Audios/")',
+            isMobileApp: '@ViewBag.IsMobileApp' == 'True'
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+</head>
+<body>
+    <div id="Game">
+        
+        <div class="cdies">
+            <script type="text/javascript">
+                for(var i=1;i<4;i++)
+                    document.write("<div class=\"die\" id=\"die"+i+"\"><div class=\"face\" data-id=\"1\"><div class=\"pip center middle\"></div></div><div class=\"face\" data-id=\"2\"><div class=\"pip top right\"></div><div class=\"pip bottom left\"></div></div><div class=\"face\" data-id=\"3\"><div class=\"pip top left\"></div><div class=\"pip center middle\"></div><div class=\"pip bottom right\"></div></div><div class=\"face\" data-id=\"4\"><div class=\"pip top left\"></div><div class=\"pip bottom left\"></div><div class=\"pip top right\"></div><div class=\"pip bottom right\"></div></div><div class=\"face\" data-id=\"5\"><div class=\"pip top left\"></div><div class=\"pip bottom left\"></div><div class=\"pip center middle\"></div><div class=\"pip top right\"></div><div class=\"pip bottom right\"></div></div><div class=\"face\" data-id=\"6\"><div class=\"pip top left\"></div><div class=\"pip middle left\"></div><div class=\"pip bottom left\"></div><div class=\"pip top right\"></div><div class=\"pip middle right\"></div><div class=\"pip bottom right\"></div></div></div>");
+            </script>
+        </div>
+        <div id="board" style="margin-left: -267px;
+                                      margin-top: -110px;">
+            <div class="side left">
+
+                <div class="quarter top">
+                    
+                    <div id="15" class="point odd"></div>
+                    <div id="14" class="point"></div>
+                    <div id="13" class="point odd"></div>
+                    <div id="12" class="point"></div>
+                    <div id="11" class="point odd"></div>
+                    <div id="10" class="point"></div>
+                    <div id="9" class="point odd"></div>
+                    <div id="8" class="point"></div>
+                </div>
+
+                <div class="quarter bottom">
+                    <div id="31" class="point"></div>
+                    <div id="30" class="point odd"></div>
+                    <div id="29" class="point"></div>
+                    <div id="28" class="point odd"></div>
+                    <div id="27" class="point"></div>
+                    <div id="26" class="point odd"></div>
+                    <div id="25" class="point"></div>
+                    <div id="24" class="point odd"></div>
+                </div>
+
+            </div>
+            <div class="side right">
+
+                <div class="quarter top">
+                    
+                    <div id="7" class="point"></div>
+                    <div id="6" class="point odd"></div>
+                    <div id="5" class="point"></div>
+                    <div id="4" class="point odd"></div>
+                    <div id="3" class="point"></div>
+                    <div id="2" class="point odd"></div>
+                    <div id="1" class="point"></div>
+                    <div id="0" class="point odd"></div>
+
+                    
+                </div>
+
+                <div class="quarter bottom">
+                    
+                    <div id="23" class="point"></div>
+                    <div id="22" class="point odd"></div>
+                    <div id="21" class="point"></div>
+                    <div id="20" class="point odd"></div>
+                    <div id="19" class="point"></div>
+                    <div id="18" class="point odd"></div>
+                    <div id="17" class="point"></div>
+                    <div id="16" class="point odd"></div>
+
+                </div>
+
+           
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="http://play.jok.io/js?ignore=3"></script>
+    @Scripts.Render("~/play/js")
+</body>
+</html>
