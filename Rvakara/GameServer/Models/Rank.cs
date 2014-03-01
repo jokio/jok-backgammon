@@ -7,15 +7,15 @@ using System.Web;
 namespace Rvakara.GameServer.Models
 {
     [DataContract]
-    public class Rank
+    public struct Rank
     {
-        private int stones = 0;
-       
+        private int stones;
 
         [DataMember]
         public int UserId { set; get; }
         [DataMember]
-        public int Stones {
+        public int Stones
+        {
             set
             {
                 if (value == 0)
@@ -25,8 +25,8 @@ namespace Rvakara.GameServer.Models
                 }
                 else
                 {
-                    if(value>0 && UserId == 0)
-                        throw  new Exception("UserId is 0. RANK!");
+                    if (value > 0 && UserId == 0)
+                        throw new Exception("UserId is 0. RANK!");
                     stones = value;
                 }
 
