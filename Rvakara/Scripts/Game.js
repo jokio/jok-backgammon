@@ -144,10 +144,47 @@ var Game = {
 
 Game.Init();
 
-game.init = function () {
+game.init = function() {
 
     //$('#Notification').append('<div class="item waiting_opponent_tournament"><br />Welcome<br/>Waiting for opponent...<br /><br /></div>');
     $('#Notification').append('<div class="item opponent_offline"><br />Opponent is offline, Keep playing<br /><br /></div>');
 
     $('#Player2').append('<div class="offline">Offline</div>');
-}
+};
+var Bot = function() {
+    Game.GameTable.Dices;
+    var forPlay = Array();
+    var Dices = Game.GameTable.Dices;
+    Dices.sort();
+    if (Dices[0] != Dices[1] && Dices[1] != Dices[2]) // a:b:c
+    {
+        for (var i = 0; i < 3; i++)
+            forPlay.push(Dices[i]); //lstMove.Add(Dices[i]);
+    } else {
+        if (Dices[0] == Dices[1] && Dices[1] == Dices[2]) //a:a:a
+        {
+            for (var i = 0; i < 6; i++)
+                forPlay.push(Dices[0]);
+        } else {
+            if (Dices[0] == Dices[1]) // a:a:b
+            {
+                for (var i = 0; i < 3; i++)
+                    forPlay.push(Dices[0]);
+                forPlay.push(Dices[2]);
+            } else { //a:b:b
+                for (var i = 0; i < 3; i++)
+                    forPlay.push(Dices[1]);
+                forPlay.push(Dices[0]);
+            }
+        }
+    }
+
+    for (var i = 0; i < 2; i++)
+        if (Game.GameTable.players[i].IsRevers && Game.GameTable.players[i].UserID == Game.UserID) {
+            Game.GameTable.TableState.reverse();
+        }
+    var table = Game.GameTable.TableState;
+    for (var t = 0; t < table.length; i++) {
+
+    }
+};
