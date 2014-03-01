@@ -92,7 +92,7 @@ namespace Rvakara.Server
                     {
                         Init();
                         Start();
-                        SendPlayerState();
+                   
                     }
                     else
                     {
@@ -104,7 +104,7 @@ namespace Rvakara.Server
 
                 case TableStatus.Started:
                     GameCallback.TableState(this, this);
-                    SendPlayerState();
+                   
                     break;
 
 
@@ -113,7 +113,7 @@ namespace Rvakara.Server
                         return;
                     Status = TableStatus.Started;
                     GameCallback.TableState(this, this);
-                    SendPlayerState();
+                  
                     break;
             }
         }
@@ -209,10 +209,11 @@ namespace Rvakara.Server
 
         protected void OnSetPosition(GamePlayer player, MoveStone[] move)
         {
-        
 
+            var kills = player.KilledStons;
             Replay = false;
-            var stmp = (Rank[])TableState.Clone();
+            var stmp = new Rank[TableState.Length];
+            Array.Copy(TableState, stmp, stmp.Length);
 
             #region  CTRL
             Array.Sort(Dices);
@@ -259,10 +260,15 @@ namespace Rvakara.Server
                     break;
                 }
 
-                if(move[i].From !=-1)
-                if (lstMove.Contains(move[i].To - move[i].From)) // Can move | this type
+                var tmp = move[i].From != -1 ? move[i].To - move[i].From : move[i].To;
+                if (lstMove.Contains(tmp)) // Can move | this type
                 {
-                    lstMove.Remove(move[i].To - move[i].From);
+                    lstMove.Remove(tmp);
+                }
+                else
+                {
+                    wrongMove = true;
+                    break;
                 }
 
                 if (!tryMove(player, stmp, move[i]))
@@ -272,15 +278,16 @@ namespace Rvakara.Server
                 }
 
             }
-            
-            if (!wrongMove && lstMove.Count==0)
+            var flagGameEnd = CheckFinish();
+            if (!wrongMove && (lstMove.Count == 0 || flagGameEnd))
             {
                 TableState = stmp;
                 var rnd = new Random();
                 Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
-                if (CheckFinish())
+                player.KilledStons = kills;
+                if (flagGameEnd)
                 {
-                 Finish();   
+                    Finish();
                 }
             }
             else
@@ -320,64 +327,20 @@ namespace Rvakara.Server
             var rnd = new Random();
             Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
 
-            //foreach (var player in Players)
-            //{
-            //    player.Time = TIME_OUT_TICK;
-
-            //    player.ProverbState = new string(Proverb.ToCharArray().
-            //        Select(c => this.KeysOption.IsChar(c)
-            //            ? XCHAR
-            //            : c).ToArray());
-            //    player.TimerCreateDate = DateTime.Now;
-            //    player.TimerHendler.SetTimeout(OnPlayerTime, player, TIME_OUT_TICK);
-            //}
             GameCallback.TableState(this, this);
 
         }
 
         void Finish()
         {
-           Status = TableStatus.Finished;
-            //LastWinnerPlayer = Players.FirstOrDefault(p => !p.ProverbState.Contains(XCHAR));
-            //if (LastWinnerPlayer == null) //აქ ასხამს თუ მხოლოდ ერთი მოთამაშეა! ჯერ არ ვივი ერთი მოთამაშე როგორ აიჩითა.
-            //    LastWinnerPlayer = Players[0].Incorect < Players[1].Incorect ? Players[0] : Players[1];
-            //Players.ForEach(p => p.TimerHendler.Stop());
+            Status = TableStatus.Finished;
+           
             GameCallback.TableState(Table, this);
         }
 
 
 
-        void OnPlayerTime(GamePlayer player)
-        {
-            //player.Incorect++;
-            //if (!CheckFinish())
-            //{
-            //    player.TimerCreateDate = DateTime.Now;
-            //    player.TimerHendler.SetTimeout(OnPlayerTime, player, TIME_OUT_TICK);
-            //    SendPlayerState();
-            //    return;
-            //}
-            //Finish();
-
-
-            //   OnSetNewChar(player, GetRandomChar(player.HelpKeys));
-        }
-
-        void SendPlayerState()
-        {
-            //if (Players.Count != 2)
-            //{//todo tavi ver davadgi aq rogor Semodis jer !
-            //    return;
-            //}
-            //var player = Players[0];
-            //var oponent = GetNextPlayer(player);
-            //var oponentProverb = new string(oponent.ProverbState.Select(a => this.KeysOption.IsChar(a) ? ' ' : a).ToArray());
-            //var playerProverb = new string(player.ProverbState.Select(a => this.KeysOption.IsChar(a) ? ' ' : a).ToArray());
-            //var currentTime = TIME_OUT_TICK - (DateTime.Now.Ticks - player.TimerCreateDate.Ticks) / 10000;
-            //var oponentTime = TIME_OUT_TICK - (DateTime.Now.Ticks - oponent.TimerCreateDate.Ticks) / 10000;
-            //GameCallback.SetCharResult(player, player.HelpKeys, player.ProverbState, currentTime, player.Incorect, oponentProverb, oponent.Incorect);
-            //GameCallback.SetCharResult(oponent, oponent.HelpKeys, oponent.ProverbState, oponentTime, oponent.Incorect, playerProverb, player.Incorect);
-        }
+      
         bool CheckFinish()
         {
             int count = 0;
@@ -387,7 +350,7 @@ namespace Rvakara.Server
                 if (item.UserId != 0)
                 {
                     if (fuserid != item.UserId)
-                    count++;
+                        count++;
                     if (count > 1)
                         return false;
                 }
