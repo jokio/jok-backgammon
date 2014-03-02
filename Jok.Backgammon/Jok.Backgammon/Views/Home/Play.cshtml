@@ -1,0 +1,62 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <title>Backgammon - The Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/js")
+</head>
+<body>
+    <div id="Game">
+        <div id="Board">
+            <div class="side_container left">
+                <div class="items_top">
+                    @for (int i = 0; i < 8; i++)
+                    {
+                        <div data-id="@(16 + i + 1)" class="stone_collection">
+                            <div class="triangle">
+                            </div>
+                            @for (int j = 0; j < 8; j++)
+                            {
+                                <div class="stone near opponent"></div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="items_bottom">
+                    @for (int i = 0; i < 8; i++)
+                    {
+                        <div data-id="@(8 + 8 - i)" class="stone_collection">
+                            <div class="triangle_rotated"></div>
+                            <div class="stone opponent"></div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="side_container right">
+                <div class="items_top">
+                    @for (int i = 0; i < 8; i++)
+                    {
+                        <div data-id="@(24 + i + 1)" class="stone_collection">
+                            <div class="triangle"></div>
+                        </div>
+                    }
+                </div>
+                <div class="items_bottom">
+                    @for (int i = 0; i < 8; i++)
+                    {
+                        <div data-id="@(8 - i)" class="stone_collection">
+                            <div class="triangle_rotated"></div>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

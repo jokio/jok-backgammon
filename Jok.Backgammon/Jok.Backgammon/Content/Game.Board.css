@@ -1,0 +1,149 @@
+﻿
+#Board {
+    width: 900px;
+    height: 640px;
+    background: url('/Images/bg_bold.png') repeat;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 140px;
+    margin-bottom: 50px;
+    position: relative;
+    box-shadow: 0 0 20px black;
+}
+
+#Board .side_container {
+    background: url('/Images/bg_normal.jpg') repeat;
+    position: absolute;
+    top: 18px;
+    bottom: 18px;
+    width: 415px;
+    box-shadow: inset 0 0 14px black;
+    border-radius: 8px;
+}
+
+#Board .side_container.left {
+    left: 18px;
+}
+
+#Board .side_container.right {
+    right: 18px;
+}
+
+#Board .side_container .items_top {
+    position: absolute;
+    top: 0px;
+    left: 7px;
+}
+
+#Board .side_container .items_bottom {
+    position: absolute;
+    bottom: 0px;
+    left: 7px;
+}
+
+#Board div.triangle {
+    width: 0;
+    height: 0;
+    border: 25px solid transparent;
+    border-top-width: 222px;
+    border-top-color: rgba(0, 0, 0, 0.2);
+    border-bottom-width: 0;
+    position: absolute;
+}
+
+#Board div.triangle_rotated {
+    width: 0;
+    height: 0;
+    border: 25px solid transparent;
+    border-bottom-width: 222px;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    border-top-width: 0;
+    position: absolute;
+    bottom: 0px;
+}
+
+#Board .side_container .stone_collection {
+    position: absolute;
+    width: 50px;
+    min-height: 48px;
+}
+
+
+#Board .side_container .stone_collection:nth-child(odd) div.triangle {
+    border-top-color: rgba(204, 204, 204, 0.2);
+}
+
+
+#Board .side_container .stone_collection:nth-child(odd) div.triangle_rotated {
+    border-bottom-color: rgba(204, 204, 204, 0.2);
+}
+
+#Board .stone {
+    border-radius: 100%;
+    border: 1px solid white;
+    background: rgb(228, 228, 228);
+    width: 40px;
+    height: 40px;
+    z-index: 10;
+    position: relative;
+    margin: 4px;
+}
+
+#Board .items_top .stone.near {
+    margin-bottom: -20px;
+}
+
+#Board .items_bottom .stone.near {
+    margin-top: -20px;
+}
+
+#Board .stone.opponent {
+    border: 1px solid rgb(80, 80, 80);
+    background: gray;
+}
+
+#Board .stone.highlight {
+    border: 1px solid rgb(19, 122, 44);
+background: rgb(137, 189, 121);
+opacity: 0.5;
+}
+
+#Board .side_container .stone_collection:nth-child(1) {
+    left: 0px;
+}
+
+#Board .side_container .stone_collection:nth-child(2) {
+    left: 50px;
+}
+
+#Board .side_container .stone_collection:nth-child(3) {
+    left: 100px;
+}
+
+#Board .side_container .stone_collection:nth-child(4) {
+    left: 150px;
+}
+
+#Board .side_container .stone_collection:nth-child(5) {
+    left: 200px;
+}
+
+#Board .side_container .stone_collection:nth-child(6) {
+    left: 250px;
+}
+
+#Board .side_container .stone_collection:nth-child(7) {
+    left: 300px;
+}
+
+#Board .side_container .stone_collection:nth-child(8) {
+    left: 350px;
+}
+
+#Board .side_container .items_top .stone_collection {
+    top: 0px;
+}
+
+#Board .side_container .items_bottom .stone_collection {
+    bottom: 0px;
+}
