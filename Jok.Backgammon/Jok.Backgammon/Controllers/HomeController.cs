@@ -1,21 +1,50 @@
-﻿using System;
+﻿using Jok.Backgammon.GameServer;
+using Jok.GameEngine;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
 namespace Jok.Backgammon.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : GameControllerBase
     {
-        public ActionResult Index()
+        #region Properties
+        protected override string AuthorizationUrl
         {
-            return View();
+            get { return ConfigurationManager.AppSettings["LoginUrl"] + "?returnUrl=" + Request.Url; }
         }
 
-        public ActionResult Play()
+        protected override string ExitUrl
         {
-            return View();
+            get { return ConfigurationManager.AppSettings["ExitUrl"]; }
+        }
+
+        protected override int ConnectionsCount
+        {
+            get { return GameHub.Connections.Count; }
+        }
+
+        protected override int TablesCount
+        {
+            get { return GameHub.Tables.Count; }
+        }
+        #endregion
+
+
+        public override ActionResult Play(string id, string sid, string source)
+        {
+            var result = base.Play(id, sid, source);
+
+            // sid რომ არ გამოჩნდეს url-ში
+            if (!String.IsNullOrEmpty(sid))
+            {
+                return RedirectToAction("Play", new { id = id, source = source, debug = Request.Params["debug"] });
+            }
+
+            return result;
         }
     }
 }

@@ -4,11 +4,40 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-    <meta charset="utf-8" />
-    <title>Backgammon - The Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/js")
+    <title>Backgammon</title>
+    <link href="http://play.jok.io/css?ignore=1" rel="stylesheet" />
+    @Styles.Render("~/play/css")
+    @if (ViewBag.IsMobileApp == true)
+    {
+        <style>
+            #Player1 .music_player,
+            #Player1 .jokfm_plugin,
+            .player .details,
+            #Addins,
+            #ExitButton,
+            #RightDocOpener,
+            #RightDoc {
+                display: none !important;
+            }
+        </style>
+    }
+    <script>
+        var jok = {};
+
+        jok.config = {
+            sid: '@ViewBag.SID',
+            gameid: '@ViewBag.GameID',
+            channel: '@ViewBag.Channel',
+            language: '@ViewBag.Language',
+            isVIPMember: '@ViewBag.IsVIPMember' == 'True',
+            exitUrl: '@ViewBag.ExitUrl',
+            authorizationUrl: '@ViewBag.AuthorizationUrl',
+            isMobileDevice: @Request.Browser.IsMobileDevice.ToString().ToLower(),
+            audios: '@Url.Content("~/Content/Audios/")',
+            isMobileApp: '@ViewBag.IsMobileApp' == 'True'
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
 </head>
 <body>
     <div id="Game">
@@ -20,10 +49,6 @@
                         <div data-id="@(16 + i + 1)" class="stone_collection">
                             <div class="triangle">
                             </div>
-                            @for (int j = 0; j < 8; j++)
-                            {
-                                <div class="stone near opponent"></div>
-                            }
                         </div>
                     }
                 </div>
@@ -32,9 +57,13 @@
                     {
                         <div data-id="@(8 + 8 - i)" class="stone_collection">
                             <div class="triangle_rotated"></div>
-                            <div class="stone opponent"></div>
                         </div>
                     }
+                </div>
+                <div class="dices current">
+                    <div class="dice dice1">5</div>
+                    <div class="dice dice2">5</div>
+                    <div class="dice dice3">5</div>
                 </div>
             </div>
             <div class="side_container right">
@@ -54,9 +83,20 @@
                         </div>
                     }
                 </div>
-
+                <div class="dices opponent">
+                    <div class="dice dice1">4</div>
+                    <div class="dice dice2">7</div>
+                    <div class="dice dice3">3</div>
+                </div>
             </div>
         </div>
+        <div id="Audios">
+            <audio id="RollingAudio">
+                <source src="~/Audio/DicesRolling.mp3" type="audio/mpeg" />
+            </audio>
+        </div>
     </div>
+    <script src="http://play.jok.io/js?ignore=3"></script>
+    @Scripts.Render("~/play/js")
 </body>
 </html>

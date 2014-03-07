@@ -3,12 +3,11 @@
     width: 900px;
     height: 640px;
     background: url('/Images/bg_bold.png') repeat;
-    margin-left: auto;
-    margin-right: auto;
     margin-top: 140px;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
     position: relative;
     box-shadow: 0 0 20px black;
+    margin-left: -30px;
 }
 
 #Board .side_container {
@@ -80,13 +79,13 @@
 
 #Board .stone {
     border-radius: 100%;
-    border: 1px solid white;
+    border: 1px solid rgb(99, 99, 99);
     background: rgb(228, 228, 228);
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     z-index: 10;
     position: relative;
-    margin: 4px;
+    margin: 1px 7px;
 }
 
 #Board .items_top .stone.near {
@@ -104,8 +103,8 @@
 
 #Board .stone.highlight {
     border: 1px solid rgb(19, 122, 44);
-background: rgb(137, 189, 121);
-opacity: 0.5;
+    background: rgb(137, 189, 121);
+    opacity: 0.5;
 }
 
 #Board .side_container .stone_collection:nth-child(1) {
@@ -146,4 +145,40 @@ opacity: 0.5;
 
 #Board .side_container .items_bottom .stone_collection {
     bottom: 0px;
+}
+
+#Board .dices {
+    position: absolute;
+    height: 40px;
+    margin-top: -20px;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    text-align: center;
+    display: none;
+}
+
+#Board .dices .dice {
+    display: inline-block;
+    width: 24px;
+height: 20px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 5px;
+    background: white;
+    color: gray;
+    border: 1px solid silver;
+    padding: 13px;
+    font-family: Arial;
+    box-shadow: 0 0 22px black;
+    font-size: 19px;
+}
+
+#Board .dices .dice1 {
+}
+
+#Board .dices .dice2 {
+}
+
+#Board .dices .dice3 {
 }

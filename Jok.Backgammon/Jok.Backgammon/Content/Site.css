@@ -1,3 +1,13 @@
-﻿body {
-    background: black;
+﻿
+body {
+    overflow: auto;
+}
+
+#Background {
+    background: #473322;
+}
+
+
+#Root {
+    background: transparent;
 }
