@@ -92,7 +92,7 @@ namespace Rvakara.Server
                     {
                         Init();
                         Start();
-                   
+                        GameCallback.TableState(this, this);
                     }
                     else
                     {
@@ -104,7 +104,6 @@ namespace Rvakara.Server
 
                 case TableStatus.Started:
                     GameCallback.TableState(this, this);
-                   
                     break;
 
 
@@ -113,7 +112,6 @@ namespace Rvakara.Server
                         return;
                     Status = TableStatus.Started;
                     GameCallback.TableState(this, this);
-                  
                     break;
             }
         }
@@ -209,7 +207,11 @@ namespace Rvakara.Server
 
         protected void OnSetPosition(GamePlayer player, MoveStone[] move)
         {
-
+            if (Status != TableStatus.Started)
+            {
+                GameCallback.TableState(this, this);
+                return;
+            }
             var kills = player.KilledStons;
             Replay = false;
             var stmp = new Rank[TableState.Length];
@@ -297,8 +299,22 @@ namespace Rvakara.Server
             GameCallback.TableState(this, this);
         }
 
+
+
+
         protected void OnPlayAgain(GamePlayer pl)
         {
+            if (Status == TableStatus.Finished)
+            {
+                pl.PlayAgain = true;
+                if (Players.Any(p => !p.PlayAgain))
+                {
+                    Start();
+                    return;
+                }
+                GameCallback.TableState(this, this);
+            }
+          
         }
 
 
@@ -316,7 +332,6 @@ namespace Rvakara.Server
             Status = TableStatus.Started;
 
             //INITIAL
-
             TableState = new Rank[32];
             for (int i = 1; i < TableState.Length - 1; i++)
                 TableState[i] = new Rank();
@@ -326,7 +341,6 @@ namespace Rvakara.Server
 
             var rnd = new Random();
             Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
-
             GameCallback.TableState(this, this);
 
         }
@@ -334,13 +348,28 @@ namespace Rvakara.Server
         void Finish()
         {
             Status = TableStatus.Finished;
-           
             GameCallback.TableState(Table, this);
         }
 
 
 
-      
+        void OnPlayerTime(GamePlayer player)
+        {
+            //player.Incorect++;
+            //if (!CheckFinish())
+            //{
+            //    player.TimerCreateDate = DateTime.Now;
+            //    player.TimerHendler.SetTimeout(OnPlayerTime, player, TIME_OUT_TICK);
+            //    SendPlayerState();
+            //    return;
+            //}
+            //Finish();
+
+
+            //   OnSetNewChar(player, GetRandomChar(player.HelpKeys));
+        }
+
+
         bool CheckFinish()
         {
             int count = 0;
@@ -375,6 +404,10 @@ namespace Rvakara.Server
         public bool IsOnline { get; set; }
 
         [IgnoreDataMember]
+        public bool PlayAgain { set; get; }
+
+
+        [IgnoreDataMember]
         public List<string> ConnectionIDs { get; set; }
 
         [IgnoreDataMember]
@@ -407,7 +440,7 @@ namespace Rvakara.Server
         public void Init()
         {
             this.Time = 0;
-
+            PlayAgain = false;
         }
     }
 
