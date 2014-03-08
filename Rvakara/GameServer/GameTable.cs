@@ -38,7 +38,9 @@ namespace Rvakara.Server
             set;
             get;
         }
-
+        
+        [DataMember]
+        public int ActivePlayreId { set; get; }
 
         [DataMember]
         public Rank[] TableState { set; get; }
@@ -293,6 +295,7 @@ namespace Rvakara.Server
                 var rnd = new Random();
                 Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
                 player.KilledStons = kills;
+                ActivePlayreId = splayer.UserID;
                 if (flagGameEnd)
                 {
                     Finish();
@@ -346,6 +349,7 @@ namespace Rvakara.Server
             Players[1].IsRevers = true;
             Players[0].TimerCreateDate = DateTime.Now;
             Players[0].TimerHendler.SetTimeout(OnPlayerTime, Players[0], TIME_OUT_TICK);
+            ActivePlayreId = Players[0].UserID;
             var rnd = new Random();
             Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
             GameCallback.TableState(this, this);
