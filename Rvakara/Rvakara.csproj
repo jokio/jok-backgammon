@@ -177,15 +177,8 @@
     <Content Include="Content\Images\bg.png" />
     <Content Include="Content\Images\black.png" />
     <Content Include="Content\Images\white.png" />
-    <Content Include="Demo\css\global.css" />
-    <Content Include="Demo\index.html" />
-    <Content Include="Demo\js\global.js" />
-    <Content Include="Demo\js\global.min.js" />
-    <Content Include="Demo\js\jquery-1.9.1.min.js" />
-    <Content Include="Demo\js\jquery-ui-1.10.2.custom.min.js" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
-    <Content Include="Demo\css\global.less" />
     <Content Include="Content\global.less" />
     <None Include="Scripts\Common\jquery-2.0.3.intellisense.js" />
     <Content Include="Scripts\Common\jquery-2.0.3.js" />

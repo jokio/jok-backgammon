@@ -151,6 +151,11 @@ game.init = function() {
 
     $('#Player2').append('<div class="offline">Offline</div>');
 };
+
+
+
+
+/*
 var Bot = function() {
     Game.GameTable.Dices;
     var forPlay = Array();
@@ -187,4 +192,4 @@ var Bot = function() {
     for (var t = 0; t < table.length; i++) {
 
     }
-};
+};*/

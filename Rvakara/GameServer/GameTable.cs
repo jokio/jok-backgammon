@@ -18,7 +18,7 @@ namespace Rvakara.Server
     {
         #region Properties
 
-
+       
         public override bool IsStarted
         {
             get { return Status == TableStatus.Started || Status == TableStatus.StartedWaiting; }
@@ -44,6 +44,7 @@ namespace Rvakara.Server
         public Rank[] TableState { set; get; }
         #endregion
 
+         int TIME_OUT_TICK = 20000;
 
 
         [DataMember]
@@ -283,6 +284,11 @@ namespace Rvakara.Server
             var flagGameEnd = CheckFinish();
             if (!wrongMove && (lstMove.Count == 0 || flagGameEnd))
             {
+                player.TimerHendler.Stop();
+                var splayer = Players.First(w => w.UserID != player.UserID);
+                splayer.TimerCreateDate = DateTime.Now;
+                splayer.TimerHendler.SetTimeout(OnPlayerTime, player, TIME_OUT_TICK);
+
                 TableState = stmp;
                 var rnd = new Random();
                 Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
@@ -338,7 +344,8 @@ namespace Rvakara.Server
             TableState[0] = new Rank() { UserId = Players[0].UserID, Stones = 20 };
             TableState[31] = new Rank() { UserId = Players[1].UserID, Stones = 20 };
             Players[1].IsRevers = true;
-
+            Players[0].TimerCreateDate = DateTime.Now;
+            Players[0].TimerHendler.SetTimeout(OnPlayerTime, Players[0], TIME_OUT_TICK);
             var rnd = new Random();
             Dices = new[] { rnd.Next(1, 8), rnd.Next(1, 8), rnd.Next(1, 8) };
             GameCallback.TableState(this, this);
@@ -355,18 +362,9 @@ namespace Rvakara.Server
 
         void OnPlayerTime(GamePlayer player)
         {
-            //player.Incorect++;
-            //if (!CheckFinish())
-            //{
-            //    player.TimerCreateDate = DateTime.Now;
-            //    player.TimerHendler.SetTimeout(OnPlayerTime, player, TIME_OUT_TICK);
-            //    SendPlayerState();
-            //    return;
-            //}
-            //Finish();
-
-
-            //   OnSetNewChar(player, GetRandomChar(player.HelpKeys));
+            LastWinnerPlayer = Players.First(p => p.UserID != player.UserID);
+            Finish();
+           
         }
 
 
@@ -433,12 +431,13 @@ namespace Rvakara.Server
         public GamePlayer()
         {
             TimerHendler = JokTimer<GamePlayer>.Create();
-            KilledStons = 0;
+            
         }
 
 
         public void Init()
         {
+            KilledStons = 0;
             this.Time = 0;
             PlayAgain = false;
         }
