@@ -46,7 +46,7 @@
                 <div class="items_top">
                     @for (int i = 0; i < 8; i++)
                     {
-                        <div data-id="@(16 + i + 1)" class="stone_collection">
+                        <div data-id="@(8 + 7 - i)" class="stone_collection">
                             <div class="triangle">
                             </div>
                         </div>
@@ -55,7 +55,7 @@
                 <div class="items_bottom">
                     @for (int i = 0; i < 8; i++)
                     {
-                        <div data-id="@(8 + 8 - i)" class="stone_collection">
+                        <div data-id="@(16 + i)" class="stone_collection">
                             <div class="triangle_rotated"></div>
                         </div>
                     }
@@ -70,7 +70,7 @@
                 <div class="items_top">
                     @for (int i = 0; i < 8; i++)
                     {
-                        <div data-id="@(24 + i + 1)" class="stone_collection">
+                        <div data-id="@(7 - i)" class="stone_collection">
                             <div class="triangle"></div>
                         </div>
                     }
@@ -78,7 +78,7 @@
                 <div class="items_bottom">
                     @for (int i = 0; i < 8; i++)
                     {
-                        <div data-id="@(8 - i)" class="stone_collection">
+                        <div data-id="@(24 + i)" class="stone_collection">
                             <div class="triangle_rotated"></div>
                         </div>
                     }
@@ -87,6 +87,16 @@
                     <div class="dice dice1">4</div>
                     <div class="dice dice2">7</div>
                     <div class="dice dice3">3</div>
+                </div>
+            </div>
+            <div class="player_killed_stones">
+                <div class="stone">
+                    0
+                </div>
+            </div>
+            <div class="opponent_killed_stones">
+                <div class="stone opponent">
+                    0
                 </div>
             </div>
         </div>

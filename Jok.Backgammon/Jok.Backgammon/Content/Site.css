@@ -4,10 +4,34 @@ body {
 }
 
 #Background {
-    background: #473322;
+    background: #7A512D;
 }
 
+#Game {
+    margin-top: 175px;
+}
 
 #Root {
     background: transparent;
+}
+
+#RightDocOpener {
+    background: url('/images/details-white.png') no-repeat top right;
+    color: white;
+    box-shadow: 0 0 0px;
+    margin-right: 20px;
+    top: 10px;
+    opacity: .5;
+    padding-top: 0px;
+    margin-top: 11px;
+}
+
+#RightDocOpener span {
+    padding-right: 30px;
+    font-size: 17px;
+}
+
+#RightDocOpener:hover {
+    background-color: transparent;
+    opacity: 1;
 }

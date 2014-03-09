@@ -57,5 +57,13 @@ namespace Jok.Backgammon.GameServer
 
             Hub.Clients.Clients(conns).RollingResult(moves, displayMoves, activeUserID);
         }
+
+        public static void MoveRequest(ICallback to)
+        {
+            var conns = GetUsers(to);
+            if (conns == null) return;
+
+            Hub.Clients.Clients(conns).MoveRequest();
+        }
     }
 }

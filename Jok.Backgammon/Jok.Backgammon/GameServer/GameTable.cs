@@ -35,10 +35,11 @@ namespace Jok.Backgammon.GameServer
         public GameTable()
         {
             Stones = new List<StonesCollection>();
+            PendingMoves = new List<int>();
 
             for (int i = 0; i < 32; i++)
             {
-                Stones.Add(new StonesCollection { Index = i + 1 });
+                Stones.Add(new StonesCollection { });
             }
         }
 
@@ -121,11 +122,12 @@ namespace Jok.Backgammon.GameServer
             if (Players.Count != 2) return;
 
             Status = TableStatus.Started;
-            Stones = new List<StonesCollection>();
-
+            Stones.ForEach(s => new StonesCollection());
 
             ActivePlayer = Players.First();
             var opponent = GetNextPlayer();
+            opponent.IsReversed = true;
+
 
             Stones[0].UserID = ActivePlayer.UserID;
             Stones[0].Count = 3;
@@ -154,29 +156,75 @@ namespace Jok.Backgammon.GameServer
             GameCallback.TableState(Table, this);
 
             Rolling();
+
         }
 
         protected void OnMove(GamePlayer player, int index, int[] moves)
         {
+            int from = index;
+            int newPosition;
+
+            var opponent = GetNextPlayer();
+
             foreach (var move in moves)
             {
-                if (!PendingMoves.Contains(move)) continue;
+                #region Checks
+                if (!player.HasKilledStones)
+                {
+                    newPosition = from + (player.IsReversed ? -1 : 1) * move;
 
-                var group = Stones[index];
-                if (group.UserID != player.UserID || group.Count == 0) continue;
+                    if (!PendingMoves.Contains(move)) continue;
+
+                    if (Stones.Count <= newPosition) continue;
+
+                    var group = Stones[from];
+                    if (group.UserID != player.UserID || group.Count == 0) continue;
+
+                }
+                else
+                {
+                    newPosition = player.IsReversed ? 32 - move : move - 1;
+                }
+
+                var newGroup = Stones[newPosition];
+                if (newGroup.UserID != player.UserID && newGroup.Count > 1) continue;
+
+                #endregion
 
 
+                if (player.HasKilledStones)
+                    player.KilledStonsCount--;
+                else
+                    Stones[from].Count--;
+
+
+                if (newGroup.UserID != player.UserID && newGroup.Count == 1)
+                {
+                    newGroup.UserID = player.UserID;
+                    newGroup.Count = 1;
+
+                    // ქვის მოკვლა
+                    opponent.KilledStonsCount++;
+                }
+                else
+                {
+                    newGroup.UserID = player.UserID;
+                    newGroup.Count++;
+                }
 
                 PendingMoves.Remove(move);
+                from = newPosition;
             }
 
             GameCallback.TableState(Table, this);
 
-
-            if (PendingMoves.Count > 0) return;
+            if (PendingMoves.Count > 0 && HasAnyMoves())
+            {
+                GameCallback.MoveRequest(player);
+                return;
+            }
 
             ActivePlayer = GetNextPlayer();
-
             Rolling();
         }
 
@@ -187,13 +235,22 @@ namespace Jok.Backgammon.GameServer
 
             var moves = new List<int>();
             var displayMoves = new List<int>();
-            for (int i = 0; i < 3; i++)
-            {
-                var move = rand.Next(1, 8);
 
-                moves.Add(move);
-                displayMoves.Add(move);
+            do
+            {
+                moves.Clear();
+                displayMoves.Clear();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var move = rand.Next(1, 8);
+
+                    moves.Add(move);
+                    displayMoves.Add(move);
+                }
             }
+            while ((moves.Where(m => m == 6).Count() == 3) && rand.Next(0, Int32.MaxValue) != 6);
+
 
             // ერთნაირი ქვების დაჯგუფება, რათა გავიგოთ წყვილი ხომ არ გაგორდა
             var grouped = displayMoves.ToLookup(m => m);
@@ -201,7 +258,7 @@ namespace Jok.Backgammon.GameServer
             // თუ სამივე ერთნაირი დაჯდა, ემატება კიდევ 3 იგივე სვლა
             if (grouped.Count == 1)
             {
-                var move = grouped[0].First();
+                var move = grouped.First().Key;
 
                 moves.Add(move);
                 moves.Add(move);
@@ -216,8 +273,56 @@ namespace Jok.Backgammon.GameServer
                 moves.Add(move);
             }
 
+            PendingMoves.Clear();
+            moves.ForEach(PendingMoves.Add);
+
 
             GameCallback.RollingResult(Table, moves.ToArray(), displayMoves.ToArray(), ActivePlayer.UserID);
+            GameCallback.MoveRequest(ActivePlayer);
+        }
+
+        bool HasAnyMoves()
+        {
+            if (ActivePlayer == null) return false;
+
+            return Stones.Where(s => s.UserID == ActivePlayer.UserID && s.Count > 0).Any(s => CheckMoves(ActivePlayer, s));
+        }
+
+        bool CheckMoves(GamePlayer player, StonesCollection stoneCollection)
+        {
+            var index = Stones.IndexOf(stoneCollection);
+
+            if (index < 0 || index > 31 || Stones.Count != 32 || index == -1) return false;
+
+
+            return PendingMoves.Any(move =>
+            {
+                if (player.HasKilledStones)
+                {
+                    var resurectMove = player.IsReversed ? 32 - move : move - 1;
+
+                    return (Stones[resurectMove].UserID == player.UserID || Stones[resurectMove].Count <= 1);
+                }
+
+
+                var nextMove = index + (player.IsReversed ? -1 : 1) * move;
+                if (nextMove < 0 || nextMove > 31) return false;
+
+                return (Stones[nextMove].UserID == player.UserID) || (Stones[nextMove].Count <= 1);
+            });
+        }
+
+        bool HasEveryStonesInside(GamePlayer player)
+        {
+            if (player.HasKilledStones)
+                return false;
+
+            return Stones.Where(s => s.UserID == player.UserID).All(s =>
+            {
+                var index = Stones.IndexOf(s);
+
+                return player.IsReversed ? (index > 25) : (index < 8);
+            });
         }
     }
 
@@ -237,9 +342,21 @@ namespace Jok.Backgammon.GameServer
         public int UserID { get; set; }
 
         [DataMember]
-        public int KilledStons { set; get; }
+        public bool IsReversed { get; set; }
+
+        [DataMember]
+        public int KilledStonsCount { set; get; }
 
         [IgnoreDataMember]
         public List<string> ConnectionIDs { get; set; }
+
+        [IgnoreDataMember]
+        public bool HasKilledStones
+        {
+            get
+            {
+                return KilledStonsCount > 0;
+            }
+        }
     }
 }

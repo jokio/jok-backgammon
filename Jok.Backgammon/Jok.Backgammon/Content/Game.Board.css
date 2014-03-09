@@ -3,8 +3,7 @@
     width: 900px;
     height: 640px;
     background: url('/Images/bg_bold.png') repeat;
-    margin-top: 140px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
     position: relative;
     box-shadow: 0 0 20px black;
     margin-left: -30px;
@@ -61,10 +60,15 @@
     bottom: 0px;
 }
 
+#Board div.triangle.allowed:hover,
+#Board div.triangle_rotated.allowed:hover {
+    /*background: rgba(255, 255, 255, 0.2);*/
+}
+
 #Board .side_container .stone_collection {
     position: absolute;
     width: 50px;
-    min-height: 48px;
+    min-height: 39px;
 }
 
 
@@ -89,10 +93,18 @@
 }
 
 #Board .items_top .stone.near {
-    margin-bottom: -20px;
+    margin-bottom: -10px;
 }
 
 #Board .items_bottom .stone.near {
+    margin-top: -10px;
+}
+
+#Board .items_top .stone.near2 {
+    margin-bottom: -20px;
+}
+
+#Board .items_bottom .stone.near2 {
     margin-top: -20px;
 }
 
@@ -105,6 +117,24 @@
     border: 1px solid rgb(19, 122, 44);
     background: rgb(137, 189, 121);
     opacity: 0.5;
+    height: 25px;
+    padding-top: 10px;
+    color: transparent;
+    font-family: Arial;
+    font-size: 12px;
+}
+
+#Board .stone.highlight.mini {
+    font-size: 10px;
+    height: 30px;
+    padding-top: 5px;
+}
+
+
+#Board .stone_collection:hover .stone.highlight {
+    opacity: 0.9;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 #Board .side_container .stone_collection:nth-child(1) {
@@ -161,7 +191,7 @@
 #Board .dices .dice {
     display: inline-block;
     width: 24px;
-height: 20px;
+    height: 20px;
     margin-left: 5px;
     margin-right: 5px;
     border-radius: 5px;
@@ -174,6 +204,11 @@ height: 20px;
     font-size: 19px;
 }
 
+#Board .dices .dice.disabled {
+    opacity: 0.6;
+    color: silver;
+}
+
 #Board .dices .dice1 {
 }
 
@@ -181,4 +216,33 @@ height: 20px;
 }
 
 #Board .dices .dice3 {
+}
+
+#Board .player_killed_stones {
+    position: absolute;
+    left: 50%;
+    bottom: 50px;
+    margin-left: -26px;
+    display: none;
+}
+
+#Board .opponent_killed_stones {
+    position: absolute;
+    left: 50%;
+    top: 50px;
+    margin-left: -26px;
+    display: none;
+}
+
+#Board .opponent_killed_stones .stone,
+#Board .player_killed_stones .stone {
+    height: 25px;
+    padding-top: 10px;
+    color: gray;
+    font-family: Arial;
+    font-size: 12px;
+}
+
+#Board .opponent_killed_stones .stone {
+    color: silver;
 }
