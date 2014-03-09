@@ -42,6 +42,7 @@ var Game = {
 
 
         $(document).on('click', '#Board .stone_collection', this.UIStoneMove);
+        $(document).on('click', '#Board .move_outside', this.UIStoneMoveOut);
     },
 
 
@@ -52,6 +53,12 @@ var Game = {
         var fromColID = $(this).attr('data-from-id');
 
         Game.stoneMove(colid, fromColID);
+    },
+
+    UIStoneMoveOut: function () {
+        var fromColID = $(this).attr('data-from-id');
+
+        Game.stoneMoveOut(fromColID);
     },
 
 
@@ -128,6 +135,7 @@ var Game = {
 
         if (this.currentPlayerHasKilledStones)
             this.allPossibleMoves();
+
 
         //$('#Board .stone.opponent').css('opacity', 0.7);
     },
@@ -206,12 +214,36 @@ var Game = {
             fromIndex = parseInt(fromIndex);
 
 
-        if (!fromIndex && fromIndex != 0 && !this.currentPlayerHasKilledStones)
+        if (!fromIndex && fromIndex != 0 && !this.currentPlayerHasKilledStones) {
             this.allPossibleMoves(index);
+
+            if (this.hasEveryStonesInside()) {
+                $('#Board .move_outside').attr('data-from-id', index);
+                $('#Board .move_outside').show();
+            }
+        }
         else {
             if (this.state[index].dices)
                 this.makeMove(index, fromIndex, this.state[index].dices);
+
+            $('#Board .move_outside').removeAttr('data-from-id');
+            $('#Board .move_outside').hide();
         }
+    },
+
+    stoneMoveOut: function (index) {
+        this.gameService.send('MoveOut', this.state[index].OriginalIndex);
+
+        this.clearStoneHighlights();
+        this.removeDices([index + 1]);
+
+        this.isMoveAllowed = false;
+
+        $('#Board .triangle').removeClass('allowed');
+        $('#Board .triangle_rotated').removeClass('allowed');
+
+        $('#Board .move_outside').removeAttr('data-from-id');
+        $('#Board .move_outside').hide();
     },
 
 
@@ -223,7 +255,15 @@ var Game = {
         this.gameService.send('Move', this.currentPlayerHasKilledStones ? 0 : this.state[fromIndex].OriginalIndex, dices);
 
         this.clearStoneHighlights();
+        this.removeDices(dices);
 
+        this.isMoveAllowed = false;
+
+        $('#Board .triangle').removeClass('allowed');
+        $('#Board .triangle_rotated').removeClass('allowed');
+    },
+
+    removeDices: function (dices) {
         var _this = this;
         dices.forEach(function (item) {
             for (var i = 0; i < _this.dices.length; i++) {
@@ -240,13 +280,6 @@ var Game = {
             if ((_this.dices.indexOf(item) == -1) || (el.length > 1))
                 $(el[0]).addClass('disabled');
         });
-
-
-        this.isMoveAllowed = false;
-
-        $('#Board .triangle').removeClass('allowed');
-        $('#Board .triangle_rotated').removeClass('allowed');
-        //$('#Board .stone.opponent').css('opacity', 1);
     },
 
     setStonesCollection: function (index, count, isPlayerStones) {
@@ -461,6 +494,22 @@ var Game = {
         }
 
         return false;
+    },
+
+    hasEveryStonesInside: function () {
+
+        if (this.currentPlayerHasKilledStones)
+            return false;
+
+        for (var i = 0; i < this.state.length; i++) {
+            var stone = this.state[i];
+
+            if (stone.UserID == jok.currentUserID && stone.Count > 0 && i < 26) {
+                return false;
+            }
+        }
+
+        return true;
     },
 };
 

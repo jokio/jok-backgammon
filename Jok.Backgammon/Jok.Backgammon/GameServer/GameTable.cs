@@ -32,6 +32,7 @@ namespace Jok.Backgammon.GameServer
         #endregion
 
 
+
         public GameTable()
         {
             Stones = new List<StonesCollection>();
@@ -42,6 +43,7 @@ namespace Jok.Backgammon.GameServer
                 Stones.Add(new StonesCollection { });
             }
         }
+
 
 
         public void Move(int userid, int index, int[] moves)
@@ -59,6 +61,23 @@ namespace Jok.Backgammon.GameServer
                 OnMove(player, index, moves);
             }
         }
+
+        public void MoveOut(int userid, int index)
+        {
+            var player = GetPlayer(userid);
+            if (player == null) return;
+
+            if (player != ActivePlayer) return;
+
+            if (index < 0 || index > 31) return;
+
+
+            lock (SyncObject)
+            {
+                OnMoveOut(player, index);
+            }
+        }
+
 
 
         protected override void OnJoin(GamePlayer player, object state)
@@ -124,39 +143,40 @@ namespace Jok.Backgammon.GameServer
             Status = TableStatus.Started;
             Stones.ForEach(s => new StonesCollection());
 
+            Players.ForEach(p => p.Init());
+
             ActivePlayer = Players.First();
             var opponent = GetNextPlayer();
             opponent.IsReversed = true;
 
 
-            Stones[0].UserID = ActivePlayer.UserID;
-            Stones[0].Count = 3;
+            //Stones[0].UserID = ActivePlayer.UserID;
+            //Stones[0].Count = 3;
 
             Stones[7].UserID = opponent.UserID;
             Stones[7].Count = 7;
 
-            Stones[9].UserID = opponent.UserID;
-            Stones[9].Count = 5;
+            //Stones[9].UserID = opponent.UserID;
+            //Stones[9].Count = 5;
 
-            Stones[15].UserID = ActivePlayer.UserID;
-            Stones[15].Count = 5;
+            //Stones[15].UserID = ActivePlayer.UserID;
+            //Stones[15].Count = 5;
 
-            Stones[16].UserID = opponent.UserID;
-            Stones[16].Count = 5;
+            //Stones[16].UserID = opponent.UserID;
+            //Stones[16].Count = 5;
 
-            Stones[22].UserID = ActivePlayer.UserID;
-            Stones[22].Count = 5;
+            //Stones[22].UserID = ActivePlayer.UserID;
+            //Stones[22].Count = 5;
 
             Stones[24].UserID = ActivePlayer.UserID;
             Stones[24].Count = 7;
 
-            Stones[31].UserID = opponent.UserID;
-            Stones[31].Count = 3;
+            //Stones[31].UserID = opponent.UserID;
+            //Stones[31].Count = 3;
 
             GameCallback.TableState(Table, this);
 
             Rolling();
-
         }
 
         protected void OnMove(GamePlayer player, int index, int[] moves)
@@ -216,18 +236,37 @@ namespace Jok.Backgammon.GameServer
                 from = newPosition;
             }
 
+            Next();
+        }
+
+        protected void OnMoveOut(GamePlayer player, int index)
+        {
+            if (!HasEveryStonesInside(player)) return;
+
+            var group = Stones[index];
+            if (group.UserID != player.UserID || group.Count <= 0) return;
+
+            group.Count--;
+            player.StonesOut++;
+
+            Next();
+        }
+
+
+
+        void Next()
+        {
             GameCallback.TableState(Table, this);
 
             if (PendingMoves.Count > 0 && HasAnyMoves())
             {
-                GameCallback.MoveRequest(player);
+                GameCallback.MoveRequest(ActivePlayer);
                 return;
             }
 
             ActivePlayer = GetNextPlayer();
             Rolling();
         }
-
 
         void Rolling()
         {
@@ -347,6 +386,9 @@ namespace Jok.Backgammon.GameServer
         [DataMember]
         public int KilledStonsCount { set; get; }
 
+        [DataMember]
+        public int StonesOut { get; set; }
+
         [IgnoreDataMember]
         public List<string> ConnectionIDs { get; set; }
 
@@ -357,6 +399,14 @@ namespace Jok.Backgammon.GameServer
             {
                 return KilledStonsCount > 0;
             }
+        }
+
+
+        public void Init()
+        {
+            StonesOut = 0;
+            IsReversed = false;
+            KilledStonsCount = 0;
         }
     }
 }

@@ -15,5 +15,13 @@ namespace Jok.Backgammon.GameServer
 
             user.Table.Move(user.UserID, index, moves);
         }
+
+        public void MoveOut(int index)
+        {
+            var user = GetCurrentUser();
+            if (user == null) return;
+
+            user.Table.MoveOut(user.UserID, index);
+        }
     }
 }

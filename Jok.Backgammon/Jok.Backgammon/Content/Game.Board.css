@@ -130,6 +130,22 @@
     padding-top: 5px;
 }
 
+#Board .move_outside {
+    border: 1px solid rgb(19, 122, 44);
+    background: rgb(137, 189, 121);
+    opacity: 0.5;
+    position: absolute;
+    right: 10px;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    color: rgba(1, 90, 22, 0.67);
+    padding-top: 270px;
+    font-size: 19px;
+    font-family: Arial;
+    cursor: pointer;
+    display: none;
+}
 
 #Board .stone_collection:hover .stone.highlight {
     opacity: 0.9;
