@@ -166,6 +166,7 @@
     <Content Include="Images\bg_bold.png" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <None Include="Properties\PublishProfiles\Jok.Backgammon.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\fastclick.js" />
     <Content Include="Scripts\Game.js" />
