@@ -26,6 +26,7 @@ var Game = {
         //});
 
 
+
         var proxy = new GameHub('GameHub', jok.config.sid, jok.config.channel); //connection.createHubProxy('PoolHub');
 
         proxy.on('Online', this.onOnline.bind(this));
@@ -43,6 +44,8 @@ var Game = {
 
         $(document).on('click', '#Board .stone_collection', this.UIStoneMove);
         $(document).on('click', '#Board .move_outside', this.UIStoneMoveOut);
+        $(document).on('click', '.play_again', Game.UIPlayAgain);
+        $(document).on('click', '.new_game', Game.UINewGame);
     },
 
 
@@ -59,6 +62,14 @@ var Game = {
         var fromColID = $(this).attr('data-from-id');
 
         Game.stoneMoveOut(fromColID);
+    },
+
+    UIPlayAgain:function(){
+        Game.gameService.send('PlayAgain');
+    },
+
+    UINewGame: function() {
+        document.location.reload();
     },
 
 
@@ -86,11 +97,16 @@ var Game = {
             case 0: {
                 jok.setPlayer(1, table.Players[0].UserID);
 
+                $('#Notification .item').hide();
+                $('#Notification .item.waiting_opponent').show();
+
                 this.setState(table.Stones);
                 break;
             }
 
             case 1: {
+                $('#Notification .item').hide();
+
                 var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
                 var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
 
@@ -102,18 +118,36 @@ var Game = {
             }
 
             case 2: {
-                var opponentUserID = table.Players[0].UserID == jok.currentUserID ? table.Players[1].UserID : table.Players[0].UserID;
-                jok.setPlayer(1, jok.currentUserID);
-                jok.setPlayer(2, opponentUserID);
+                $('#Notification .item').hide();
+                $('#Notification .item.table_leave_winner').show();
 
-                this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID);
+                var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
+                var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
+
+                jok.setPlayer(1, jok.currentUserID);
+                jok.setPlayer(2, null);
+
+                this.isMoveAllowed = false;
+
+                this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
                 break;
             }
 
             case 3: {
-                var opponentUserID = table.Players[0].UserID == jok.currentUserID ? table.Players[1].UserID : table.Players[0].UserID;
+                var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
+                var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
 
-                this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID);
+                $('#Notification .item').hide();
+                $('#Notification .item.table_finish_winner span').html(jok.players[table.LastWinnerPlayer.UserID].nick);
+                $('#Notification .item.table_finish_winner').show();
+
+                this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
+
+                if (currentPlayer && opponentPlayer && (currentPlayer.WinsCount > 0 || opponentPlayer.WinsCount > 0)) {
+                    $('#Player1').find('.wins').html(currentPlayer.WinsCount);
+                    $('#Player2').find('.wins').html(opponentPlayer.WinsCount);
+                }
+
                 break;
             }
         }
@@ -213,13 +247,32 @@ var Game = {
         if (fromIndex)
             fromIndex = parseInt(fromIndex);
 
+        $('#Board .move_outside').removeAttr('data-from-id');
+        $('#Board .move_outside').hide();
+
 
         if (!fromIndex && fromIndex != 0 && !this.currentPlayerHasKilledStones) {
             this.allPossibleMoves(index);
 
             if (this.hasEveryStonesInside()) {
-                $('#Board .move_outside').attr('data-from-id', index);
-                $('#Board .move_outside').show();
+
+                var move = 31 - index + 1;
+                var maxLeftStone = this.state.filter(function (item) {
+                    return (item.UserID == jok.currentUserID) && (item.Count > 0);
+                })[0];
+
+                var forceAllowMove = false;
+                if (maxLeftStone) {
+                    var maxLeftStoneIndex = this.state.indexOf(maxLeftStone);
+                    forceAllowMove = (maxLeftStoneIndex == index) && this.dices.filter(function (dice) {
+                        return dice > move;
+                    }).length > 0;
+                }
+
+                if (this.state[index].Count > 0 && this.dices.indexOf(move) > -1 || forceAllowMove) {
+                    $('#Board .move_outside').attr('data-from-id', index);
+                    $('#Board .move_outside').show();
+                }
             }
         }
         else {
@@ -234,8 +287,10 @@ var Game = {
     stoneMoveOut: function (index) {
         this.gameService.send('MoveOut', this.state[index].OriginalIndex);
 
+        var move = 31 - index + 1;
+
         this.clearStoneHighlights();
-        this.removeDices([index + 1]);
+        this.removeDices([move]);
 
         this.isMoveAllowed = false;
 
@@ -504,7 +559,7 @@ var Game = {
         for (var i = 0; i < this.state.length; i++) {
             var stone = this.state[i];
 
-            if (stone.UserID == jok.currentUserID && stone.Count > 0 && i < 26) {
+            if (stone.UserID == jok.currentUserID && stone.Count > 0 && i < 24) {
                 return false;
             }
         }

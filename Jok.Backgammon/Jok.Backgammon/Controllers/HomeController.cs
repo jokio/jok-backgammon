@@ -33,6 +33,10 @@ namespace Jok.Backgammon.Controllers
         }
         #endregion
 
+        public override ActionResult Index()
+        {
+            return View("Index");
+        }
 
         public override ActionResult Play(string id, string sid, string source)
         {

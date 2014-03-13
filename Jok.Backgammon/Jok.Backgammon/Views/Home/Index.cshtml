@@ -1,3 +1,140 @@
-﻿@{
-    ViewBag.Title = "Home Page";
-}
+﻿<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <title>Backgammon - The Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta property="fb:app_id" content="528732163816152" />
+    <link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
+    @Styles.Render("~/index/css")
+    <script src="~/Scripts/jquery-1.10.2.js"></script>
+</head>
+<body>
+    <style>
+        .root {
+            width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 80px;
+            font-family: 'Josefin Sans', sans-serif, Arial;
+            font-size: 20px;
+            position: relative;
+        }
+
+        .root .logo {
+            max-width: 100px;
+            border-radius: 5px;
+            vertical-align: middle;
+            margin-top: -10px;
+        }
+
+        .root .preview {
+            width: 100%;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .root .info {
+            margin: 40px 10px;
+            text-align: justify;
+        }
+
+        .root .info span.title {
+            font-weight: bold;
+        }
+
+        .root .header {
+            font-size: 34px;
+            color: #55b919;
+            font-weight: bold;
+        }
+
+        .root li span {
+            color: #55b919;
+        }
+
+        .copyright {
+            color: gray;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 70px;
+            margin-bottom: 200px;
+        }
+
+        .root .socials {
+            position: absolute;
+            top: 15px;
+            right: 0px;
+        }
+
+        .root .downloads {
+            text-align: center;
+        }
+
+        .root .downloads .disabled {
+            opacity: .4;
+        }
+
+        .root .comments {
+            margin-top: 30px;
+            margin-left: 40px;
+        }
+
+        .root .comments iframe {
+            border: 1px solid rgb(233, 233, 233) !important;
+            border-radius: 8px;
+        }
+    </style>
+    <div id="fb-root"></div>
+    <script>
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=528732163816152";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));</script>
+    @{Html.RenderPartial("_GithubLogo");}
+    <div class="root">
+        <div class="header">
+            @*<img src="~/Images/icon.png" class="logo" />*@
+            <span>The Game - 8 Point Backgammon</span>
+        </div>
+        <div class="socials">
+            <div class="fb-like" data-href="http://backgammon.jok.io/" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>
+        </div>
+        <div class="info">
+            <span class="title">Story:</span><br />
+            Everybody knows backgammon game, it's very popular and have lot's of funs.
+            What we offer is new way of playing backgammon, it's new thinking, new strategies, new challenges.
+        </div>
+        <a href="@Url.Action("Play", "Home")"><img src="~/Images/preview.png" class="preview" /></a>
+
+        <div class="downloads">
+            <a href="@Url.Action("Play", "Home")"><img src="~/Images/webplay.png" /></a>
+        </div>
+        <div class="info">
+            <span class="title">Game Modes:</span><br />
+            <ul>
+                <li><span>Play Online</span> - Play with real opponents</li>
+            </ul>
+        </div>
+        <div class="info">
+            <span class="title">Features:</span><br />
+            <ul>
+                <li><span>Ranking</span> - Play and get your position in Top players list, we are using Elo ranking system.</li>
+                <li><span>Rooms</span> - Where you can filter players by their level and game modes</li>
+                <li><span>Tournaments</span> - Weekly tournaments and three prizes</li>
+                <li><span>Messaging</span> - For finding new friends online</li>
+            </ul>
+        </div>
+        @*<div class="comments">
+            <div class="fb-comments" data-href="http://pitching.jok.io" data-width="520" data-numposts="5" data-colorscheme="light"></div>
+        </div>*@
+        <div class="copyright">
+            All rights reversed © Jok Entertainers
+        </div>
+    </div>
+</body>
+</html>

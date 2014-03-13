@@ -158,12 +158,16 @@
     <Content Include="Audio\DicesRolling.mp3" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\Game.Board.css" />
+    <Content Include="Content\_GithubLogo.css" />
     <Content Include="favicon.ico" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Images\bg_normal.jpg" />
     <Content Include="Images\bg_bold.png" />
+    <Content Include="Images\details-white.png" />
+    <Content Include="Images\preview.png" />
+    <Content Include="Images\webplay.png" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Properties\PublishProfiles\Jok.Backgammon.pubxml" />
@@ -194,6 +198,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Scripts\jquery-1.10.2.min.map" />
     <Content Include="Views\Home\Play.cshtml" />
+    <Content Include="Views\Home\_GithubLogo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff" />

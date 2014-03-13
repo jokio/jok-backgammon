@@ -20,6 +20,12 @@ namespace Jok.Backgammon
             bundles.Add(new StyleBundle("~/play/css").Include(
                       "~/Content/Game.Board.css",
                       "~/Content/site.css"));
+
+
+
+            bundles.Add(new StyleBundle("~/index/css").Include(
+                      //"~/Content/bootstrap.css",
+                      "~/Content/_GithubLogo.css"));
         }
     }
 }

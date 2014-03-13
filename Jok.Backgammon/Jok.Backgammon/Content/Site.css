@@ -1,6 +1,12 @@
 ﻿
 body {
     overflow: auto;
+    min-width: 900px;
+    min-height: 650px;
+}
+
+#Addins {
+    position: fixed;
 }
 
 #Background {
@@ -34,4 +40,8 @@ body {
 #RightDocOpener:hover {
     background-color: transparent;
     opacity: 1;
+}
+
+#Notification {
+    top: 50px;
 }

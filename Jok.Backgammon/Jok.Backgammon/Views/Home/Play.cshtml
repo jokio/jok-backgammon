@@ -30,7 +30,7 @@
             channel: '@ViewBag.Channel',
             language: '@ViewBag.Language',
             isVIPMember: '@ViewBag.IsVIPMember' == 'True',
-            exitUrl: '@ViewBag.ExitUrl',
+            exitUrl: '@Url.Action("Index", "Home")@*@ViewBag.ExitUrl*@',
             authorizationUrl: '@ViewBag.AuthorizationUrl',
             isMobileDevice: @Request.Browser.IsMobileDevice.ToString().ToLower(),
             audios: '@Url.Content("~/Content/Audios/")',
