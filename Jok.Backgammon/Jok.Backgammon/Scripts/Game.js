@@ -69,7 +69,6 @@ var Game = {
 
             Game[command].apply(Game, params);
         });
-
         proxy.on('open', this.onOnline.bind(this));
         proxy.on('close', this.onClose.bind(this));
 
@@ -84,6 +83,20 @@ var Game = {
         //proxy.start();
 
         this.gameService = proxy;
+
+        this.gameService.sendCommand = function (command) {
+            var params = [];
+            for (var _i = 0; _i < (arguments.length - 1) ; _i++) {
+                params[_i] = arguments[_i + 1];
+            }
+
+            var msg = JSON.stringify({
+                command: command,
+                params: params
+            });
+
+            this.send(msg);
+        }
 
 
         $(document).on('click', '#Board .stone_collection', this.UIStoneMove);
