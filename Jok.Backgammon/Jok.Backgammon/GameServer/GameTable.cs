@@ -177,7 +177,7 @@ namespace Jok.Backgammon.GameServer
             Stones[0].Count = 3;
 
             Stones[7].UserID = opponent.UserID;
-            Stones[7].Count = 2;
+            Stones[7].Count = 7;
 
             Stones[9].UserID = opponent.UserID;
             Stones[9].Count = 5;

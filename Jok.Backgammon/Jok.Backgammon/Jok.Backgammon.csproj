@@ -168,10 +168,14 @@
     <Content Include="Images\details-white.png" />
     <Content Include="Images\preview.png" />
     <Content Include="Images\webplay.png" />
+    <Content Include="Scripts\Bin\App.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Properties\PublishProfiles\Jok.Backgammon.pubxml" />
+    <Content Include="Scripts\Bin\App.js.map" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Scripts\eio-reconnect-0.8.0.js" />
+    <Content Include="Scripts\engine.io-1.0.3.js" />
     <Content Include="Scripts\fastclick.js" />
     <Content Include="Scripts\Game.js" />
     <Content Include="Scripts\Jok.GameEngine.js" />
@@ -206,6 +210,15 @@
     <Content Include="Content\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="packages.config" />
     <None Include="Project_Readme.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="GameServer2\GameTable.ts" />
+    <TypeScriptCompile Include="GameServer2\JP.ts" />
+    <TypeScriptCompile Include="GameServer2\Models\Commands.ts" />
+    <TypeScriptCompile Include="GameServer2\Models\StonesCollection.ts" />
+    <TypeScriptCompile Include="GameServer2\Models\TableStatus.ts" />
+    <TypeScriptCompile Include="GameServer2\Server.ts" />
+    <TypeScriptCompile Include="Scripts\typings\node\node.d.ts" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

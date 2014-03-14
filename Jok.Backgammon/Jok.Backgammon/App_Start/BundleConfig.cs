@@ -12,8 +12,10 @@ namespace Jok.Backgammon
                         "~/Scripts/jquery-{version}.js",
                         "~/Scripts/jquery.cookie.js",
                         "~/Scripts/jquery.shake-effect.js",
-                        "~/Scripts/jquery.signalR-{version}.js",
-                        "~/Scripts/Jok.GameEngine.js",
+                        //"~/Scripts/jquery.signalR-{version}.js",
+                        //"~/Scripts/Jok.GameEngine.js",
+                        "~/Scripts/engine.io-{version}.js",
+                        "~/Scripts/eio-reconnect-{version}.js",
                         "~/Scripts/fastclick.js",
                         "~/Scripts/Game.js"));
 

@@ -27,17 +27,61 @@ var Game = {
 
 
 
-        var proxy = new GameHub('GameHub', jok.config.sid, jok.config.channel); //connection.createHubProxy('PoolHub');
+        //var proxy = new GameHub('GameHub', jok.config.sid, jok.config.channel); //connection.createHubProxy('PoolHub');
 
-        proxy.on('Online', this.onOnline.bind(this));
-        proxy.on('Offline', this.onOffline.bind(this));
-        proxy.on('Close', this.onClose.bind(this));
-        proxy.on('UserAuthenticated', this.onUserAuthenticated.bind(this));
-        proxy.on('TableState', this.onTableState.bind(this));
-        proxy.on('RollingResult', this.onRollingResult.bind(this));
-        proxy.on('MoveRequest', this.onMoveRequest.bind(this));
 
-        proxy.start();
+        $('#Notification .item').hide();
+        $('#Notification .item.connecting').show();
+
+
+        var socket = eio.Socket(jok.config.connectUrl, {
+            query: {
+                token: jok.config.sid,
+                gameid: jok.config.gameid,
+                gamemode: jok.config.gamemode,
+                channel: jok.config.channel,
+            }
+        });
+
+        var proxy = reconnect(socket, {
+            reconnectTimeout: 60 * 60 * 1000 /* 1 Hour */
+        });
+
+        proxy.on('message', function (msg) {
+
+            try {
+                if (typeof msg == 'string')
+                    msg = JSON.parse(msg);
+            }
+            catch (err) { }
+
+            if (!msg || !msg.command) return;
+
+            var command = msg.command;
+            var params = msg.params;
+
+            if (!command) return;
+
+            command = 'on' + command;
+
+            if (!Game[command]) return;
+            if (typeof Game[command] != 'function') return;
+
+            Game[command].apply(Game, params);
+        });
+
+        proxy.on('open', this.onOnline.bind(this));
+        proxy.on('close', this.onClose.bind(this));
+
+        //proxy.on('Online', this.onOnline.bind(this));
+        //proxy.on('Offline', this.onOffline.bind(this));
+        //proxy.on('Close', this.onClose.bind(this));
+        //proxy.on('UserAuthenticated', this.onUserAuthenticated.bind(this));
+        //proxy.on('TableState', this.onTableState.bind(this));
+        //proxy.on('RollingResult', this.onRollingResult.bind(this));
+        //proxy.on('MoveRequest', this.onMoveRequest.bind(this));
+
+        //proxy.start();
 
         this.gameService = proxy;
 
@@ -46,6 +90,7 @@ var Game = {
         $(document).on('click', '#Board .move_outside', this.UIStoneMoveOut);
         $(document).on('click', '.play_again', Game.UIPlayAgain);
         $(document).on('click', '.new_game', Game.UINewGame);
+
     },
 
 
@@ -64,11 +109,11 @@ var Game = {
         Game.stoneMoveOut(fromColID);
     },
 
-    UIPlayAgain:function(){
+    UIPlayAgain: function () {
         Game.gameService.send('PlayAgain');
     },
 
-    UINewGame: function() {
+    UINewGame: function () {
         document.location.reload();
     },
 
@@ -92,6 +137,7 @@ var Game = {
     },
 
     onTableState: function (table) {
+        console.log(arguments);
 
         switch (table.Status) {
             case 0: {

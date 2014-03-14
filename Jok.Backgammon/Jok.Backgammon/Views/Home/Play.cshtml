@@ -27,6 +27,7 @@
         jok.config = {
             sid: '@ViewBag.SID',
             gameid: '@ViewBag.GameID',
+            gamemode: '1',
             channel: '@ViewBag.Channel',
             language: '@ViewBag.Language',
             isVIPMember: '@ViewBag.IsVIPMember' == 'True',
@@ -34,7 +35,8 @@
             authorizationUrl: '@ViewBag.AuthorizationUrl',
             isMobileDevice: @Request.Browser.IsMobileDevice.ToString().ToLower(),
             audios: '@Url.Content("~/Content/Audios/")',
-            isMobileApp: '@ViewBag.IsMobileApp' == 'True'
+            isMobileApp: '@ViewBag.IsMobileApp' == 'True',
+            connectUrl: '@System.Configuration.ConfigurationManager.AppSettings["ServerUrl"]'
         }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />

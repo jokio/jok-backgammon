@@ -1,9 +1,9 @@
 {
-        "name": "Jok.Realtime.Server",
+        "name": "Jok.Backgammon.Server",
         "version": "0.1.0",
         "dependencies": {
-				"engine.io" : "0.9.0",
-				"engine.io-client" : "0.9.0",
+				"engine.io" : "1.0.3",
+				"engine.io-client" : "1.0.3",
 				"engine.io-rooms" : "0.1.1",
 				"eio-reconnect" : "0.8.0",
 				"atob" : "*",
@@ -14,7 +14,7 @@
                 "npm": "1.1.x"
         },
         "scripts": {
-                "start": "node Jok.Realtime/Jok.Realtime/Scripts/Bin/App.js",
-                "debug": "node-inspector | node --debug Jok.Realtime/Jok.Realtime/Scripts/Bin/App.js"
+                "start": "node Jok.Backgammon/Jok.Backgammon/Scripts/Bin/App.js",
+                "debug": "node-inspector | node --debug Jok.Backgammon/Jok.Backgammon/Scripts/Bin/App.js"
         }
 }
