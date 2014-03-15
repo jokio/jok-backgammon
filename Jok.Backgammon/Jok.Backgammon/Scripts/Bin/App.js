@@ -1,10 +1,30 @@
-﻿var TableStatus;
-(function (TableStatus) {
-    TableStatus[TableStatus["New"] = 0] = "New";
-    TableStatus[TableStatus["Started"] = 1] = "Started";
-    TableStatus[TableStatus["StartedWaiting"] = 2] = "StartedWaiting";
-    TableStatus[TableStatus["Finished"] = 3] = "Finished";
-})(TableStatus || (TableStatus = {}));
+﻿global["JP"] = require('jok-play');
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var GamePlayer = (function (_super) {
+    __extends(GamePlayer, _super);
+    function GamePlayer(UserID, IPAddress, IsVIP, IsOnline) {
+        _super.call(this, UserID, IPAddress, IsVIP, IsOnline);
+        this.UserID = UserID;
+        this.IPAddress = IPAddress;
+        this.IsVIP = IsVIP;
+        this.IsOnline = IsOnline;
+    }
+    GamePlayer.prototype.hasKilledStones = function () {
+        return this.KilledStonsCount > 0;
+    };
+
+    GamePlayer.prototype.init = function () {
+        this.StonesOut = 0;
+        this.IsReversed = false;
+        this.KilledStonsCount = 0;
+    };
+    return GamePlayer;
+})(JP.GamePlayerBase);
 var StonesCollection = (function () {
     function StonesCollection(UserID, Count) {
         if (typeof Count === "undefined") { Count = 0; }
@@ -22,379 +42,358 @@ var Commands;
     })(Commands.Client || (Commands.Client = {}));
     var Client = Commands.Client;
 })(Commands || (Commands = {}));
-var GameTable = (function () {
-    function GameTable(Channel, Mode) {
+var GameTable = (function (_super) {
+    __extends(GameTable, _super);
+    function GameTable(GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable) {
         if (typeof Channel === "undefined") { Channel = ''; }
         if (typeof Mode === "undefined") { Mode = 0; }
+        if (typeof MaxPlayersCount === "undefined") { MaxPlayersCount = 2; }
+        if (typeof IsVIPTable === "undefined") { IsVIPTable = false; }
+        _super.call(this, GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable);
+        this.GamePlayerClass = GamePlayerClass;
         this.Channel = Channel;
         this.Mode = Mode;
+        this.MaxPlayersCount = MaxPlayersCount;
+        this.IsVIPTable = IsVIPTable;
+
         this.Stones = [];
         this.Players = [];
+
+        this.PendingMoves = [];
+
+        for (var i = 0; i < 32; i++) {
+            this.Stones.push(new StonesCollection());
+        }
     }
-    GameTable.prototype.join = function (user, ipaddress, channel, mode) {
-        this.send(0 /* TableState */, user, mode);
+    GameTable.prototype.start = function () {
+        if (this.Players.length != 2)
+            return;
+
+        this.Status = JP.TableStatus.Started;
+        this.Stones.forEach(function (s) {
+            return new StonesCollection();
+        });
+
+        this.Players.forEach(function (p) {
+            return p.init();
+        });
+
+        this.ActivePlayer = this.Players[0];
+        var opponent = this.getNextPlayer();
+        opponent.IsReversed = true;
+
+        this.Stones.forEach(function (s) {
+            s.UserID = null;
+            s.Count = 0;
+        });
+
+        this.Stones[0].UserID = this.ActivePlayer.UserID;
+        this.Stones[0].Count = 3;
+
+        this.Stones[7].UserID = opponent.UserID;
+        this.Stones[7].Count = 7;
+
+        this.Stones[9].UserID = opponent.UserID;
+        this.Stones[9].Count = 5;
+
+        this.Stones[15].UserID = this.ActivePlayer.UserID;
+        this.Stones[15].Count = 5;
+
+        this.Stones[16].UserID = opponent.UserID;
+        this.Stones[16].Count = 5;
+
+        this.Stones[22].UserID = this.ActivePlayer.UserID;
+        this.Stones[22].Count = 5;
+
+        this.Stones[24].UserID = this.ActivePlayer.UserID;
+        this.Stones[24].Count = 7;
+
+        this.Stones[31].UserID = opponent.UserID;
+        this.Stones[31].Count = 3;
+
+        this.send('TableState', this);
+
+        this.rolling();
     };
 
-    GameTable.prototype.leave = function (userid) {
+    GameTable.prototype.finish = function () {
+        this.LastWinnerPlayer = this.ActivePlayer;
+        var loser = this.getNextPlayer();
+
+        this.LastWinnerPlayer.WinsCount++;
+
+        this.Status = JP.TableStatus.Finished;
+
+        this.send('TableState', this);
     };
 
-    GameTable.prototype.move = function (userid, index, moves) {
+    GameTable.prototype.playersChanged = function () {
+        this.send('TableState', this);
     };
 
-    GameTable.prototype.moveOut = function (userid, index) {
+    GameTable.prototype.onMove = function (userid, index, moves) {
+        var player = this.Players.filter(function (p) {
+            return p.UserID == userid;
+        })[0];
+        if (!player)
+            return;
+
+        if (player != this.ActivePlayer)
+            return;
+
+        if (index < 0 || index > 31)
+            return;
+
+        var from = index;
+        var newPosition;
+
+        var opponent = this.getNextPlayer();
+
+        for (var i = 0; i < moves.length; i++) {
+            var move = moves[i];
+
+            if (!player.hasKilledStones()) {
+                newPosition = from + (player.IsReversed ? -1 : 1) * move;
+
+                if (!this.PendingMoves.contains(move))
+                    continue;
+
+                if (this.Stones.length <= newPosition)
+                    continue;
+
+                var group = this.Stones[from];
+                if (group.UserID != player.UserID || group.Count == 0)
+                    continue;
+            } else {
+                newPosition = player.IsReversed ? 32 - move : move - 1;
+            }
+
+            var newGroup = this.Stones[newPosition];
+            if (newGroup.UserID != player.UserID && newGroup.Count > 1)
+                continue;
+
+            if (player.hasKilledStones())
+                player.KilledStonsCount--;
+            else
+                this.Stones[from].Count--;
+
+            if (newGroup.UserID != player.UserID && newGroup.Count == 1) {
+                newGroup.UserID = player.UserID;
+                newGroup.Count = 1;
+
+                opponent.KilledStonsCount++;
+            } else {
+                newGroup.UserID = player.UserID;
+                newGroup.Count++;
+            }
+
+            this.PendingMoves.remove(move);
+
+            from = newPosition;
+        }
+
+        this.next();
     };
 
-    GameTable.prototype.playAgain = function (userid) {
+    GameTable.prototype.onMoveOut = function (userid, index) {
+        var player = this.Players.filter(function (p) {
+            return p.UserID == userid;
+        })[0];
+        if (!player)
+            return;
+
+        if (player != this.ActivePlayer)
+            return;
+
+        if (index < 0 || index > 31)
+            return;
+
+        if (!this.hasEveryStonesInside(player))
+            return;
+
+        var group = this.Stones[index];
+        if (group.UserID != player.UserID || group.Count <= 0)
+            return;
+
+        var filtered = this.Stones.filter(function (s) {
+            return s.UserID == player.UserID && s.Count > 0;
+        });
+
+        var maxLeftStone = !player.IsReversed ? filtered[0] : filtered[filtered.length - 1];
+
+        var move = (!player.IsReversed ? 31 - index : index) + 1;
+        if (!this.PendingMoves.contains(move))
+            move = this.PendingMoves.filter(function (m) {
+                return m > move;
+            })[0];
+
+        if (!move)
+            return;
+
+        var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
+        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingMoves.some(function (m) {
+            return m > move;
+        });
+        if (!this.PendingMoves.contains(move) && !forceAllowMove)
+            return;
+
+        group.Count--;
+        player.StonesOut++;
+
+        this.PendingMoves.remove(move);
+
+        this.next();
     };
 
-    GameTable.prototype.onJoin = function (player, state) {
-    };
+    GameTable.prototype.onPlayAgain = function (userid) {
+        var player = this.Players.filter(function (p) {
+            return p.UserID == userid;
+        })[0];
+        if (!player)
+            return;
 
-    GameTable.prototype.onLeave = function (player) {
-    };
+        if (this.Status != JP.TableStatus.Finished)
+            return;
 
-    GameTable.prototype.onStart = function () {
-    };
+        if (this.Players.length != 2)
+            return;
 
-    GameTable.prototype.onMove = function (player, index, moves) {
-    };
-
-    GameTable.prototype.onMoveOut = function (player, index) {
-    };
-
-    GameTable.prototype.onFinish = function () {
-    };
-
-    GameTable.prototype.onPlayAgain = function (player) {
+        this.start();
     };
 
     GameTable.prototype.next = function () {
+        var _this = this;
+        this.send('TableState', this);
+
+        if (this.Stones.filter(function (s) {
+            return s.UserID == _this.ActivePlayer.UserID && s.Count > 0;
+        }).length == 0) {
+            this.finish();
+            return;
+        }
+
+        if (this.PendingMoves.length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
+            this.ActivePlayer.send('MoveRequest');
+            return;
+        }
+
+        this.ActivePlayer = this.getNextPlayer();
+        this.rolling();
     };
 
     GameTable.prototype.rolling = function () {
+        var _this = this;
+        var rand = function (max) {
+            return Math.floor((Math.random() * (max)) + 1);
+        };
+
+        var moves = [];
+        var displayMoves = [];
+
+        do {
+            moves = [];
+            displayMoves = [];
+
+            for (var i = 0; i < 3; i++) {
+                var move = rand(8);
+
+                moves.push(move);
+                displayMoves.push(move);
+            }
+        } while((moves.filter(function (m) {
+            return m == 6;
+        }).length == 3) && rand(1000000) != 6);
+
+        var grouped = displayMoves.unique();
+
+        if (grouped.length == 1) {
+            var move = grouped[0];
+
+            moves.push(move);
+            moves.push(move);
+            moves.push(move);
+        }
+
+        if (grouped.length == 2) {
+            var move = grouped[0];
+            if (grouped[1] == grouped[2])
+                move = grouped[1];
+
+            moves.push(move);
+        }
+
+        this.PendingMoves = [];
+        moves.forEach(function (m) {
+            return _this.PendingMoves.push(m);
+        });
+
+        this.send('RollingResult', moves, displayMoves, this.ActivePlayer.UserID);
+        this.ActivePlayer.send('MoveRequest');
     };
 
     GameTable.prototype.hasAnyMoves = function () {
+        var _this = this;
+        if (!this.ActivePlayer)
+            return false;
+
+        return this.Stones.filter(function (s) {
+            return s.UserID == _this.ActivePlayer.UserID && s.Count > 0;
+        }).some(function (s) {
+            return _this.checkMoves(_this.ActivePlayer, s);
+        });
     };
 
     GameTable.prototype.checkMoves = function (player, stoneCollection) {
+        var _this = this;
+        var index = this.Stones.indexOf(stoneCollection);
+
+        if (index < 0 || index > 31 || this.Stones.length != 32 || index == -1)
+            return false;
+
+        return this.PendingMoves.some(function (move) {
+            if (player.hasKilledStones()) {
+                var resurectMove = player.IsReversed ? 32 - move : move - 1;
+
+                return (_this.Stones[resurectMove].UserID == player.UserID || _this.Stones[resurectMove].Count <= 1);
+            }
+
+            var nextMove = index + (player.IsReversed ? -1 : 1) * move;
+            if (nextMove < 0 || nextMove > 31)
+                return false;
+
+            return (_this.Stones[nextMove].UserID == player.UserID) || (_this.Stones[nextMove].Count <= 1);
+        });
     };
 
     GameTable.prototype.hasEveryStonesInside = function (player) {
+        var _this = this;
+        if (player.hasKilledStones())
+            return false;
+
+        return this.Stones.filter(function (s) {
+            return s.UserID == player.UserID;
+        }).every(function (s) {
+            var index = _this.Stones.indexOf(s);
+
+            return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
+        });
     };
 
-    GameTable.prototype.send = function (command) {
-        var params = [];
-        for (var _i = 0; _i < (arguments.length - 1); _i++) {
-            params[_i] = arguments[_i + 1];
-        }
-        this.Players.forEach(function (p) {
-            return p.send(command, params);
-        });
+    GameTable.prototype.getNextPlayer = function (player) {
+        if (this.Players.length <= 1)
+            return;
+
+        if (!player)
+            player = this.ActivePlayer;
+
+        if (!player)
+            return;
+
+        var index = this.Players.indexOf(player);
+
+        return this.Players[index < this.Players.length - 1 ? ++index : 0];
     };
     return GameTable;
-})();
-
-var GamePlayer = (function () {
-    function GamePlayer() {
-    }
-    GamePlayer.prototype.hasKilledStones = function () {
-        return this.KilledStonsCount > 0;
-    };
-
-    GamePlayer.prototype.init = function () {
-        this.StonesOut = 0;
-        this.IsReversed = false;
-        this.KilledStonsCount = 0;
-    };
-
-    GamePlayer.prototype.send = function (command) {
-        var params = [];
-        for (var _i = 0; _i < (arguments.length - 1); _i++) {
-            params[_i] = arguments[_i + 1];
-        }
-        var sockets = JP.ChannelSockets('User' + this.UserID);
-        if (!sockets)
-            return;
-
-        sockets.forEach(function (s) {
-            return s.send(JP.BuildCommand(Commands.Client[command], params));
-        });
-    };
-    return GamePlayer;
-})();
-var JP = (function () {
-    function JP() {
-    }
-    JP.SendMail = function (to, subject, body) {
-        try  {
-            if (!JP.pluginSendgrid) {
-                var sendgrid = require('sendgrid');
-                if (sendgrid)
-                    JP.pluginSendgrid = sendgrid(process.env.SENDGRID_USERNAME, process.env.SENDGRID_PASSWORD);
-            }
-        } catch (err) {
-            return;
-        }
-
-        if (!JP.pluginSendgrid)
-            return;
-
-        var sendObject = {
-            to: to,
-            from: 'no-reply@jok.io',
-            subject: subject,
-            text: body
-        };
-
-        var errorSending = function (err, json) {
-            if (err) {
-                return console.error('Sendmail failed', err);
-            }
-        };
-
-        JP.pluginSendgrid.send(sendObject, errorSending);
-    };
-
-    JP.HttpGet = function (url, cb, parseJson) {
-        if (typeof parseJson === "undefined") { parseJson = false; }
-        try  {
-            if (!JP.pluginHttp) {
-                JP.pluginHttp = require('http');
-            }
-        } catch (err) {
-            return;
-        }
-
-        if (!JP.pluginHttp)
-            return;
-
-        JP.pluginHttp.get(url, function (res) {
-            var data = '';
-            res.on('data', function (chunk) {
-                data += chunk;
-            });
-
-            res.on('end', function () {
-                if (parseJson) {
-                    try  {
-                        var oldData = data;
-                        data = JSON.parse(data);
-                    } catch (err) {
-                        cb && cb(false, err.message, oldData);
-                    }
-                }
-
-                cb && cb(true, data);
-            });
-        }).on('error', function (e) {
-            cb && cb(false, e.message, e);
-        });
-    };
-
-    JP.ChannelSockets = function (channel) {
-        if (!JP.IO || !JP.IO.adapter)
-            return;
-
-        var channelClients = JP.IO.adapter().clients(channel);
-        var result = [];
-
-        for (var id in channelClients) {
-            var client_sid = channelClients[id];
-
-            if (!client_sid)
-                continue;
-
-            var socket = JP.IO.clients[client_sid];
-            if (!socket)
-                continue;
-
-            result.push(socket);
-        }
-
-        return result;
-    };
-
-    JP.BuildCommand = function (command) {
-        var params = [];
-        for (var _i = 0; _i < (arguments.length - 1); _i++) {
-            params[_i] = arguments[_i + 1];
-        }
-        return JSON.stringify({
-            command: command,
-            params: params
-        });
-    };
-    return JP;
-})();
-var engine = require('engine.io');
-var engineRooms = require('engine.io-rooms');
-var http = require('http');
-var urlParser = require('url');
-
-var Server = (function () {
-    function Server(port) {
-        if (typeof port === "undefined") { port = process.env.PORT || 9003; }
-        var _this = this;
-        this.port = port;
-        this.GameTables = [];
-        this.UsersCount = 0;
-        var server = http.createServer(this.httpHandler.bind(this));
-        this.io = engine.attach(server);
-
-        this.io = engineRooms(this.io);
-
-        JP.IO = this.io;
-
-        this.StartTime = Date.now();
-
-        this.io.on('connection', this.onConnectionOpen.bind(this));
-
-        server.listen(this.port, function () {
-            console.log('server listening at port:', _this.port);
-        });
-
-        JP.SendMail('status-update@jok.io', 'jok-realtime-server started', 'StartTime: ' + new Date());
-    }
-    Server.prototype.httpHandler = function (req, res) {
-        var urlInfo = urlParser.parse(req.url, true);
-
-        switch (urlInfo.pathname) {
-            case '/stats':
-                 {
-                    res.end(JSON.stringify({
-                        ConnectionsCount: this.io.clientsCount,
-                        UsersCount: this.UsersCount,
-                        TablesCount: this.GameTables.length,
-                        Uptime: (Date.now() - this.StartTime) / (1000 * 60) + ' min.'
-                    }));
-                }
-                break;
-
-            default:
-                 {
-                    res.end('Hi, Bye');
-                }
-                break;
-        }
-    };
-
-    Server.prototype.onConnectionOpen = function (socket) {
-        var _this = this;
-        console.log('shemovida connection');
-
-        var sid = socket.request.query.token;
-        var gameid = socket.request.query.gameid;
-        var gamemode = socket.request.query.gamemode;
-        var channel = socket.request.query.channel;
-        var ipaddress = socket.request.headers["x-forwarded-for"];
-
-        if (ipaddress) {
-            var list = ipaddress.split(",");
-            ipaddress = list[list.length - 1];
-        } else {
-            ipaddress = socket.request.connection.remoteAddress;
-        }
-
-        if (!sid || !ipaddress || !gameid)
-            return;
-
-        var userid;
-        var disconnected;
-        var gameTable;
-
-        var url = Server.API_ROOT_URL + 'User/InfoBySID?sid=' + sid + '&ipaddress=' + ipaddress + '&gameid=' + gameid;
-
-        JP.HttpGet(url, function (isSuccess, data) {
-            if (!isSuccess || !data.UserID || disconnected)
-                return;
-
-            userid = data.UserID;
-
-            _this.UsersCount++;
-
-            var userChannel = 'User' + userid;
-            socket.join(userChannel);
-
-            gameTable = _this.findTable(data, channel, gamemode);
-            if (!gameTable) {
-                console.log('GameTable not found, it must not happen. Passed parameters:', channel, gamemode);
-                return;
-            }
-            gameTable.join(data, ipaddress, channel, gamemode);
-
-            socket.send(JP.BuildCommand('UserAuthenticated', userid));
-        }, true);
-
-        socket.on('message', function (msg) {
-            if (!userid || !gameTable || !msg)
-                return;
-
-            try  {
-                if (typeof msg == 'string')
-                    msg = JSON.parse(msg);
-            } catch (err) {
-            }
-
-            var command = msg.command;
-            var params = msg.params;
-
-            if (!command) {
-                console.log('Every message must have  "command" and optionaly "params" properties');
-                return;
-            }
-
-            if (typeof gameTable[command] != 'function') {
-                console.log('GameTable method not found with name:', command);
-                return;
-            }
-
-            gameTable[command].apply(gameTable, params);
-        });
-
-        socket.on('close', function () {
-            disconnected = true;
-
-            if (!userid)
-                return;
-
-            _this.UsersCount--;
-
-            gameTable && gameTable.leave(userid);
-        });
-    };
-
-    Server.prototype.findTable = function (user, channel, mode) {
-        var table = this.GameTables.filter(function (t) {
-            return t.Players.filter(function (p) {
-                return p.UserID == user.UserID;
-            })[0] != undefined;
-        })[0];
-        if (table)
-            return table;
-
-        table = this.GameTables.filter(function (t) {
-            return t.Channel == channel;
-        })[0];
-        if (table)
-            return table;
-
-        if (!this.createTable)
-            return;
-
-        return this.createTable(user, channel, mode);
-    };
-
-    Server.prototype.createTable = function (user, channel, mode) {
-        return new GameTable(channel, mode);
-    };
-
-    Server.Start = function (port) {
-        return new Server(port);
-    };
-    Server.API_ROOT_URL = 'http://api.jok.io/';
-    return Server;
-})();
-
-Server.Start();
+})(JP.GameTableBase);
+JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);
 //# sourceMappingURL=App.js.map

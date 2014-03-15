@@ -1,15 +1,11 @@
-/// <reference path="models/tablestatus.ts" />
+/// <reference path="jokplay.ts" />
 /// <reference path="models/stonescollection.ts" />
 /// <reference path="models/commands.ts" />
+/// <reference path="gameplayer.ts" />
 
-
-class GameTable {
-
-    public Status: TableStatus;
+class GameTable extends JP.GameTableBase<GamePlayer> {
 
     public Stones: StonesCollection[];
-
-    public Players: GamePlayer[];
 
     public LastWinnerPlayer: GamePlayer;
 
@@ -17,427 +13,323 @@ class GameTable {
 
 
 
-    constructor(public Channel = '', public Mode = 0) {
+    constructor(private GamePlayerClass, public Channel = '', public Mode = 0, public MaxPlayersCount = 2, public IsVIPTable = false) {
+
+        super(GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable);
+
         this.Stones = [];
         this.Players = [];
 
-        //PendingMoves = new List<int>();
+        this.PendingMoves = [];
 
-        //    for (int i = 0; i < 32; i++)
-        //    {
-        //    Stones.Add(new StonesCollection {});
-        //}
+        for (var i = 0; i < 32; i++) {
+            this.Stones.push(new StonesCollection());
+        }
+    }
+
+
+    // overrides
+    public start() {
+        if (this.Players.length != 2) return;
+
+        this.Status = JP.TableStatus.Started;
+        this.Stones.forEach(s => new StonesCollection());
+
+        this.Players.forEach(p => p.init());
+
+        this.ActivePlayer = this.Players[0];
+        var opponent = this.getNextPlayer();
+        opponent.IsReversed = true;
+
+        this.Stones.forEach(s => {
+            s.UserID = null;
+            s.Count = 0;
+        });
+
+        this.Stones[0].UserID = this.ActivePlayer.UserID;
+        this.Stones[0].Count = 3;
+
+        this.Stones[7].UserID = opponent.UserID;
+        this.Stones[7].Count = 7;
+
+        this.Stones[9].UserID = opponent.UserID;
+        this.Stones[9].Count = 5;
+
+        this.Stones[15].UserID = this.ActivePlayer.UserID;
+        this.Stones[15].Count = 5;
+
+        this.Stones[16].UserID = opponent.UserID;
+        this.Stones[16].Count = 5;
+
+        this.Stones[22].UserID = this.ActivePlayer.UserID;
+        this.Stones[22].Count = 5;
+
+        this.Stones[24].UserID = this.ActivePlayer.UserID;
+        this.Stones[24].Count = 7;
+
+        this.Stones[31].UserID = opponent.UserID;
+        this.Stones[31].Count = 3;
+
+        this.send('TableState', this);
+
+        this.rolling();
+    }
+
+    public finish() {
+        this.LastWinnerPlayer = this.ActivePlayer;
+        var loser = this.getNextPlayer();
+
+        this.LastWinnerPlayer.WinsCount++;
+
+        this.Status = JP.TableStatus.Finished;
+
+        this.send('TableState', this);
+    }
+
+    public playersChanged() {
+        this.send('TableState', this);
     }
 
 
 
-    public join(user, ipaddress, channel, mode) {
+    // commands
+    public onMove(userid: number, index: number, moves: number[]) {
+        var player = this.Players.filter(p=> p.UserID == userid)[0];
+        if (!player) return;
 
-        this.send(Commands.Client.TableState, user, mode);
+        if (player != this.ActivePlayer) return;
+
+        if (index < 0 || index > 31) return;
+
+
+        var from = index;
+        var newPosition;
+
+        var opponent = this.getNextPlayer();
+
+        for (var i = 0; i < moves.length; i++) {
+            var move = moves[i];
+
+            //#region Checks
+            if (!player.hasKilledStones()) {
+                newPosition = from + (player.IsReversed ? -1 : 1) * move;
+
+                if (!this.PendingMoves.contains(move)) continue;
+
+                if (this.Stones.length <= newPosition) continue;
+
+                var group = this.Stones[from];
+                if (group.UserID != player.UserID || group.Count == 0) continue;
+
+            }
+            else {
+                newPosition = player.IsReversed ? 32 - move : move - 1;
+            }
+
+            var newGroup = this.Stones[newPosition];
+            if (newGroup.UserID != player.UserID && newGroup.Count > 1) continue;
+
+            //#endregion
+
+
+            if (player.hasKilledStones())
+                player.KilledStonsCount--;
+            else
+                this.Stones[from].Count--;
+
+
+            if (newGroup.UserID != player.UserID && newGroup.Count == 1) {
+                newGroup.UserID = player.UserID;
+                newGroup.Count = 1;
+
+                // ქვის მოკვლა
+                opponent.KilledStonsCount++;
+            }
+            else {
+                newGroup.UserID = player.UserID;
+                newGroup.Count++;
+            }
+
+            this.PendingMoves.remove(move);
+
+            from = newPosition;
+        }
+
+        this.next();
     }
 
-    public leave(userid: number) {
+    public onMoveOut(userid: number, index: number) {
+        var player = this.Players.filter(p=> p.UserID == userid)[0];
+        if (!player) return;
+
+        if (player != this.ActivePlayer) return;
+
+        if (index < 0 || index > 31) return;
+
+        if (!this.hasEveryStonesInside(player)) return;
+
+        var group = this.Stones[index];
+        if (group.UserID != player.UserID || group.Count <= 0) return;
+
+        var filtered = this.Stones.filter(s => s.UserID == player.UserID && s.Count > 0);
+
+        var maxLeftStone = !player.IsReversed ?
+            filtered[0] :
+            filtered[filtered.length - 1];
+
+
+        var move = (!player.IsReversed ? 31 - index : index) + 1;
+        if (!this.PendingMoves.contains(move))
+            move = this.PendingMoves.filter(m => m > move)[0]
+
+        if (!move) return;
+
+        var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
+        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingMoves.some(m => m > move);
+        if (!this.PendingMoves.contains(move) && !forceAllowMove) return;
+
+        group.Count--;
+        player.StonesOut++;
+
+        this.PendingMoves.remove(move);
+
+        this.next();
     }
 
-    public move(userid: number, index: number, moves: number[]) {
-        //var player = GetPlayer(userid);
-        //if (player == null) return;
+    public onPlayAgain(userid: number) {
+        var player = this.Players.filter(p=> p.UserID == userid)[0];
+        if (!player) return;
 
-        //if (player != ActivePlayer) return;
+        if (this.Status != JP.TableStatus.Finished) return;
 
-        //if (index < 0 || index > 31) return;
+        if (this.Players.length != 2) return;
 
-
-        //lock(SyncObject)
-        //    {
-        //    OnMove(player, index, moves);
-        //}
-    }
-
-    public moveOut(userid: number, index: number) {
-        //var player = GetPlayer(userid);
-        //if (player == null) return;
-
-        //if (player != ActivePlayer) return;
-
-        //if (index < 0 || index > 31) return;
-
-
-        //lock(SyncObject)
-        //        {
-        //    OnMoveOut(player, index);
-        //}
-    }
-
-    public playAgain(userid: number) {
-        //var player = GetPlayer(userid);
-        //if (player == null) return;
-
-
-        //lock(SyncObject)
-        //        {
-        //    OnPlayAgain(player);
-        //}
-    }
-
-
-
-    onJoin(player: GamePlayer, state) {
-        //switch (Status) {
-        //    case TableStatus.New:
-        //        if (!Players.Contains(player))
-        //            AddPlayer(player);
-
-        //        if (Players.Count == 2) {
-        //            Players.ForEach(p => p.WinsCount = 0);
-        //            OnStart();
-        //        }
-        //        else
-        //            GameCallback.TableState(player, this);
-
-        //        break;
-
-        //    case TableStatus.Started:
-        //        GameCallback.TableState(Table, this);
-        //        break;
-
-
-        //    case TableStatus.StartedWaiting:
-        //        if (!Players.Contains(player))
-        //            return;
-
-        //        Status = TableStatus.Started;
-        //        GameCallback.TableState(Table, this);
-
-        //        break;
-        //}
-    }
-
-    onLeave(player: GamePlayer) {
-        //switch (Status) {
-        //    case TableStatus.New:
-        //        RemovePlayer(player);
-        //        break;
-
-
-        //    case TableStatus.Started:
-        //        Status = TableStatus.StartedWaiting;
-        //        GameCallback.TableState(this, this);
-        //        break;
-
-
-        //    case TableStatus.StartedWaiting:
-        //        break;
-
-
-        //    case TableStatus.Finished:
-        //        RemovePlayer(player);
-        //        break;
-        //}
-    }
-
-    onStart() {
-        //if (Players.Count != 2) return;
-
-        //Status = TableStatus.Started;
-        //Stones.ForEach(s => new StonesCollection());
-
-        //Players.ForEach(p => p.Init());
-
-        //ActivePlayer = Players.First();
-        //var opponent = GetNextPlayer();
-        //opponent.IsReversed = true;
-
-        //Stones.ForEach(s => {
-        //    s.UserID = null;
-        //    s.Count = 0;
-        //});
-
-        //Stones[0].UserID = ActivePlayer.UserID;
-        //Stones[0].Count = 3;
-
-        //Stones[7].UserID = opponent.UserID;
-        //Stones[7].Count = 7;
-
-        //Stones[9].UserID = opponent.UserID;
-        //Stones[9].Count = 5;
-
-        //Stones[15].UserID = ActivePlayer.UserID;
-        //Stones[15].Count = 5;
-
-        //Stones[16].UserID = opponent.UserID;
-        //Stones[16].Count = 5;
-
-        //Stones[22].UserID = ActivePlayer.UserID;
-        //Stones[22].Count = 5;
-
-        //Stones[24].UserID = ActivePlayer.UserID;
-        //Stones[24].Count = 7;
-
-        //Stones[31].UserID = opponent.UserID;
-        //Stones[31].Count = 3;
-
-        //GameCallback.TableState(Table, this);
-
-        //Rolling();
-    }
-
-    onMove(player: GamePlayer, index: number, moves: number[]) {
-        //        int from = index;
-        //        int newPosition;
-
-        //var opponent = GetNextPlayer();
-
-        //foreach (var move in moves)
-        //        {
-        //            #region Checks
-        //            if (!player.HasKilledStones) {
-        //        newPosition = from + (player.IsReversed ? -1 : 1) * move;
-
-        //        if (!PendingMoves.Contains(move)) continue;
-
-        //        if (Stones.Count <= newPosition) continue;
-
-        //        var group = Stones[from];
-        //        if (group.UserID != player.UserID || group.Count == 0) continue;
-
-        //    }
-        //    else {
-        //        newPosition = player.IsReversed ? 32 - move : move - 1;
-        //    }
-
-        //    var newGroup = Stones[newPosition];
-        //    if (newGroup.UserID != player.UserID && newGroup.Count > 1) continue;
-
-        //            #endregion
-
-
-        //            if (player.HasKilledStones)
-        //        player.KilledStonsCount--;
-        //    else
-        //        Stones[from].Count--;
-
-
-        //    if (newGroup.UserID != player.UserID && newGroup.Count == 1) {
-        //        newGroup.UserID = player.UserID;
-        //        newGroup.Count = 1;
-
-        //        // ქვის მოკვლა
-        //        opponent.KilledStonsCount++;
-        //    }
-        //    else {
-        //        newGroup.UserID = player.UserID;
-        //        newGroup.Count++;
-        //    }
-
-        //    PendingMoves.Remove(move);
-        //    from = newPosition;
-        //        }
-
-        //Next();
-    }
-
-    onMoveOut(player: GamePlayer, index: number) {
-        //if (!HasEveryStonesInside(player)) return;
-
-        //var group = Stones[index];
-        //if (group.UserID != player.UserID || group.Count <= 0) return;
-
-        //var maxLeftStone = !player.IsReversed ?
-        //    Stones.Where(s => s.UserID == player.UserID && s.Count > 0).FirstOrDefault() :
-        //    Stones.Where(s => s.UserID == player.UserID && s.Count > 0).LastOrDefault();
-
-
-        //var move = (!player.IsReversed ? 31 - index : index) + 1;
-        //if (!PendingMoves.Contains(move))
-        //    move = PendingMoves.Where(m => m > move).FirstOrDefault();
-
-        //if (move == null) return;
-
-        //var maxLeftStoneIndex = Stones.IndexOf(maxLeftStone);
-        //var forceAllowMove = (maxLeftStoneIndex == index) && PendingMoves.Any(m => m > move);
-        //if (!PendingMoves.Contains(move) && !forceAllowMove) return;
-
-        //group.Count--;
-        //player.StonesOut++;
-
-        //PendingMoves.Remove(move);
-
-        //Next();
-    }
-
-    onFinish() {
-        //LastWinnerPlayer = ActivePlayer;
-        //var loser = GetNextPlayer();
-
-        //LastWinnerPlayer.WinsCount++;
-
-        //Status = TableStatus.Finished;
-        //GameCallback.TableState(Table, this);
-    }
-
-    onPlayAgain(player: GamePlayer) {
-        //if (Status != TableStatus.Finished) return;
-
-        //if (Players.Count != 2) return;
-
-        //OnStart();
+        this.start();
     }
 
 
 
+    // helper
     next() {
-        //GameCallback.TableState(Table, this);
+        this.send('TableState', this);
 
-        //// ხომ არ მორჩა?
-        //if (Stones.Count(s=> s.UserID == ActivePlayer.UserID && s.Count > 0) == 0) {
-        //    OnFinish();
-        //    return;
-        //}
+        // ხომ არ მორჩა?
+        if (this.Stones.filter(s=> s.UserID == this.ActivePlayer.UserID && s.Count > 0).length == 0) {
+            this.finish();
+            return;
+        }
 
-        //if (PendingMoves.Count > 0 && (HasAnyMoves() || HasEveryStonesInside(ActivePlayer))) {
-        //    GameCallback.MoveRequest(ActivePlayer);
-        //    return;
-        //}
+        if (this.PendingMoves.length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
+            this.ActivePlayer.send('MoveRequest');
+            return;
+        }
 
-        //ActivePlayer = GetNextPlayer();
-        //Rolling();
+        this.ActivePlayer = this.getNextPlayer();
+        this.rolling();
     }
 
     rolling() {
-        //var rand = new Random(Guid.NewGuid().ToByteArray().Sum(s => s));
+        var rand = (max) => {
+            return Math.floor((Math.random() * (max)) + 1);
+        };
 
-        //var moves = new List<int>();
-        //var displayMoves = new List<int>();
+        var moves: number[] = [];
+        var displayMoves: number[] = [];
 
-        //do {
-        //    moves.Clear();
-        //    displayMoves.Clear();
+        do {
+            moves = [];
+            displayMoves = [];
 
-        //            for (int i = 0; i < 3; i++)
-        //            {
-        //        var move = rand.Next(1, 9);
+            for (var i = 0; i < 3; i++) {
+                var move = rand(8);
 
-        //        moves.Add(move);
-        //        displayMoves.Add(move);
-        //    }
-        //}
-        //while ((moves.Where(m => m == 6).Count() == 3) && rand.Next(0, Int32.MaxValue) != 6);
-
-
-        //// ერთნაირი ქვების დაჯგუფება, რათა გავიგოთ წყვილი ხომ არ გაგორდა
-        //var grouped = displayMoves.ToLookup(m => m);
-
-        //// თუ სამივე ერთნაირი დაჯდა, ემატება კიდევ 3 იგივე სვლა
-        //if (grouped.Count == 1) {
-        //    var move = grouped.First().Key;
-
-        //    moves.Add(move);
-        //    moves.Add(move);
-        //    moves.Add(move);
-        //}
-
-        //// თუ ორი დაჯდა ერთნაირი, ემატება კიდევ 1 იგივე სვლა
-        //if (grouped.Count == 2) {
-        //    var move = grouped.First(g => g.Count() == 2).Key;
-
-        //    moves.Add(move);
-        //}
-
-        //PendingMoves.Clear();
-        //moves.ForEach(PendingMoves.Add);
+                moves.push(move);
+                displayMoves.push(move);
+            }
+        }
+        while ((moves.filter(m => m == 6).length == 3) && rand(1000000) != 6);
 
 
-        //GameCallback.RollingResult(Table, moves.ToArray(), displayMoves.ToArray(), ActivePlayer.UserID);
-        //GameCallback.MoveRequest(ActivePlayer);
+        // ერთნაირი ქვების დაჯგუფება, რათა გავიგოთ წყვილი ხომ არ გაგორდა
+        var grouped = displayMoves.unique();
+
+        // თუ სამივე ერთნაირი დაჯდა, ემატება კიდევ 3 იგივე სვლა
+        if (grouped.length == 1) {
+            var move: number = grouped[0];
+
+            moves.push(move);
+            moves.push(move);
+            moves.push(move);
+        }
+
+        // თუ ორი დაჯდა ერთნაირი, ემატება კიდევ 1 იგივე სვლა
+        if (grouped.length == 2) {
+            var move: number = moves[0];
+            if (moves[1] == moves[2])
+                move = moves[1];
+
+            moves.push(move);
+        }
+
+        this.PendingMoves = [];
+        moves.forEach(m => this.PendingMoves.push(m));
+
+        this.send('RollingResult', moves, displayMoves, this.ActivePlayer.UserID);
+        this.ActivePlayer.send('MoveRequest');
     }
 
     hasAnyMoves() {
-        //if (ActivePlayer == null) return false;
+        if (!this.ActivePlayer) return false;
 
-        //return Stones.Where(s => s.UserID == ActivePlayer.UserID && s.Count > 0).Any(s => CheckMoves(ActivePlayer, s));
+        return this.Stones.filter(s => s.UserID == this.ActivePlayer.UserID && s.Count > 0).some(s => this.checkMoves(this.ActivePlayer, s));
     }
 
-    checkMoves(player: GamePlayer, stoneCollection: StonesCollection) {
-        //var index = Stones.IndexOf(stoneCollection);
+    checkMoves(player: GamePlayer, stoneCollection: StonesCollection): boolean {
+        var index = this.Stones.indexOf(stoneCollection);
 
-        //if (index < 0 || index > 31 || Stones.Count != 32 || index == -1) return false;
-
-
-        //return PendingMoves.Any(move => {
-        //    if (player.HasKilledStones) {
-        //        var resurectMove = player.IsReversed ? 32 - move : move - 1;
-
-        //        return (Stones[resurectMove].UserID == player.UserID || Stones[resurectMove].Count <= 1);
-        //    }
+        if (index < 0 || index > 31 || this.Stones.length != 32 || index == -1) return false;
 
 
-        //    var nextMove = index + (player.IsReversed ? -1 : 1) * move;
-        //    if (nextMove < 0 || nextMove > 31) return false;
+        return this.PendingMoves.some(move => {
+            if (player.hasKilledStones()) {
+                var resurectMove = player.IsReversed ? 32 - move : move - 1;
 
-        //    return (Stones[nextMove].UserID == player.UserID) || (Stones[nextMove].Count <= 1);
-        //});
+                return (this.Stones[resurectMove].UserID == player.UserID || this.Stones[resurectMove].Count <= 1);
+            }
+
+
+            var nextMove = index + (player.IsReversed ? -1 : 1) * move;
+            if (nextMove < 0 || nextMove > 31) return false;
+
+            return (this.Stones[nextMove].UserID == player.UserID) || (this.Stones[nextMove].Count <= 1);
+        });
     }
 
     hasEveryStonesInside(player: GamePlayer) {
-        //if (player.HasKilledStones)
-        //    return false;
+        if (player.hasKilledStones())
+            return false;
 
-        //return Stones.Where(s => s.UserID == player.UserID).All(s => {
-        //    var index = Stones.IndexOf(s);
+        return this.Stones.filter(s => s.UserID == player.UserID).every(s => {
+            var index = this.Stones.indexOf(s);
 
-        //    return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
-        //});
+            return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
+        });
     }
 
-    send(command: Commands.Client, ...params: any[]) {
-        this.Players.forEach(p => p.send(command, params));
-    }
-}
+    getNextPlayer(player?: GamePlayer): GamePlayer {
+
+        if (this.Players.length <= 1) return;
+
+        if (!player)
+            player = this.ActivePlayer;
+
+        if (!player) return;
 
 
-class GamePlayer {
+        var index = this.Players.indexOf(player);
 
-    public IPAddress;
-
-    public IsVIP;
-
-    public IsOnline;
-
-    public UserID;
-
-    public IsReversed;
-
-    public KilledStonsCount;
-
-    public StonesOut;
-
-    public WinsCount;
-
-    public ConnectionIDs;
-
-
-    public hasKilledStones() {
-        return this.KilledStonsCount > 0;
-    }
-
-    public init() {
-        this.StonesOut = 0;
-        this.IsReversed = false;
-        this.KilledStonsCount = 0;
-    }
-
-    public send(command: Commands.Client, ...params: any[]) {
-
-        //var args: any[] = Array.prototype.slice.call(arguments);
-        //if (args.length == 0) return;
-        //args.splice(0, 1);
-
-
-        var sockets = JP.ChannelSockets('User' + this.UserID);
-        if (!sockets) return;
-
-
-        sockets.forEach(s => s.send(JP.BuildCommand(Commands.Client[command], params)));
+        return this.Players[index < this.Players.length - 1 ? ++index : 0];
     }
 }
+
+

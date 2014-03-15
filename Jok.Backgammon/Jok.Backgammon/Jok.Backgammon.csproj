@@ -212,12 +212,12 @@
     <None Include="Project_Readme.html" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="GameServer2\GamePlayer.ts" />
     <TypeScriptCompile Include="GameServer2\GameTable.ts" />
-    <TypeScriptCompile Include="GameServer2\JP.ts" />
-    <TypeScriptCompile Include="GameServer2\Models\Commands.ts" />
+    <TypeScriptCompile Include="GameServer2\JokPlay.ts" />
     <TypeScriptCompile Include="GameServer2\Models\StonesCollection.ts" />
-    <TypeScriptCompile Include="GameServer2\Models\TableStatus.ts" />
     <TypeScriptCompile Include="GameServer2\Server.ts" />
+    <TypeScriptCompile Include="Scripts\typings\jok\jok.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\node\node.d.ts" />
   </ItemGroup>
   <PropertyGroup>

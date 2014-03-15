@@ -2,11 +2,7 @@
         "name": "Jok.Backgammon.Server",
         "version": "0.1.0",
         "dependencies": {
-				"engine.io" : "1.0.3",
-				"engine.io-client" : "1.0.3",
-				"engine.io-rooms" : "0.1.1",
-				"eio-reconnect" : "0.8.0",
-				"atob" : "*",
+				"jok-play": "*",
 				"node-uuid" : "*"
         },
         "engines": {

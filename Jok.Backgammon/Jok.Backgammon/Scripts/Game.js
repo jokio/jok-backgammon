@@ -1,5 +1,82 @@
 ﻿
 
+var JP = {
+
+    createSocket: function (opts) {
+
+        var root = opts.cbEventsRoot;
+
+        var socket = eio.Socket(opts.connectUrl, {
+            query: {
+                token: opts.token || '',
+                gameid: opts.gameid || 0,
+                gamemode: opts.gamemode || 1,
+                channel: opts.channel || ''
+            }
+        });
+
+        var proxy = reconnect(socket, {
+            reconnectTimeout: opts.reconectTimeout || 60 * 60 * 1000 /* 1 Hour */
+        });
+
+        proxy.on('message', function (msg) {
+
+            if (!root) return;
+
+            try {
+                if (typeof msg == 'string')
+                    msg = JSON.parse(msg);
+            }
+            catch (err) { }
+
+            if (Object.prototype.toString.call(msg) !== '[object Array]') {
+                return;
+            }
+
+            if (!msg.length) return;
+
+            var command = msg.shift();
+            var params = msg;
+
+            if (!command) return;
+
+            command = 'on' + command;
+
+            if (!Game[command]) return;
+            if (typeof Game[command] != 'function') return;
+
+            console.log(command, params);
+
+            root[command].apply(Game, params);
+        });
+
+        var _this = this;
+        proxy.on('open', function() {
+            opts.cbOnline && opts.cbOnline();
+        });
+        proxy.on('close', function () {
+            opts.cbOffline && opts.cbOffline();
+        });
+
+
+        proxy.sendCommand = function (command) {
+
+            var params = [];
+            for (var _i = 0; _i < (arguments.length - 1) ; _i++) {
+                params[_i] = arguments[_i + 1];
+            }
+
+            params.unshift(command);
+
+            var msg = JSON.stringify(params);
+
+            this.send(msg);
+        }
+
+        return proxy;
+    }
+}
+
 
 var Game = {
 
@@ -16,88 +93,20 @@ var Game = {
 
 
     init: function () {
-        //$(document).on('click', '#Board .dices', function () {
-
-        //    var dice1 = Math.floor((Math.random() * 8) + 1);
-        //    var dice2 = Math.floor((Math.random() * 8) + 1);
-        //    var dice3 = Math.floor((Math.random() * 8) + 1);
-
-        //    Game.setDices([dice1, dice2, dice3], 1);
-        //});
-
-
-
-        //var proxy = new GameHub('GameHub', jok.config.sid, jok.config.channel); //connection.createHubProxy('PoolHub');
-
 
         $('#Notification .item').hide();
         $('#Notification .item.connecting').show();
 
-
-        var socket = eio.Socket(jok.config.connectUrl, {
-            query: {
-                token: jok.config.sid,
-                gameid: jok.config.gameid,
-                gamemode: jok.config.gamemode,
-                channel: jok.config.channel,
-            }
+        this.gameService = JP.createSocket({
+            connectUrl: jok.config.connectUrl,
+            token: jok.config.sid,
+            gameid: jok.config.gameid,
+            gamemode: jok.config.gamemode,
+            channel: jok.config.channel,
+            cbOnline: this.onOnline.bind(this),
+            cbOffline: this.onOffline.bind(this),
+            cbEventsRoot: this
         });
-
-        var proxy = reconnect(socket, {
-            reconnectTimeout: 60 * 60 * 1000 /* 1 Hour */
-        });
-
-        proxy.on('message', function (msg) {
-
-            try {
-                if (typeof msg == 'string')
-                    msg = JSON.parse(msg);
-            }
-            catch (err) { }
-
-            if (!msg || !msg.command) return;
-
-            var command = msg.command;
-            var params = msg.params;
-
-            if (!command) return;
-
-            command = 'on' + command;
-
-            if (!Game[command]) return;
-            if (typeof Game[command] != 'function') return;
-
-            Game[command].apply(Game, params);
-        });
-        proxy.on('open', this.onOnline.bind(this));
-        proxy.on('close', this.onClose.bind(this));
-
-        //proxy.on('Online', this.onOnline.bind(this));
-        //proxy.on('Offline', this.onOffline.bind(this));
-        //proxy.on('Close', this.onClose.bind(this));
-        //proxy.on('UserAuthenticated', this.onUserAuthenticated.bind(this));
-        //proxy.on('TableState', this.onTableState.bind(this));
-        //proxy.on('RollingResult', this.onRollingResult.bind(this));
-        //proxy.on('MoveRequest', this.onMoveRequest.bind(this));
-
-        //proxy.start();
-
-        this.gameService = proxy;
-
-        this.gameService.sendCommand = function (command) {
-            var params = [];
-            for (var _i = 0; _i < (arguments.length - 1) ; _i++) {
-                params[_i] = arguments[_i + 1];
-            }
-
-            var msg = JSON.stringify({
-                command: command,
-                params: params
-            });
-
-            this.send(msg);
-        }
-
 
         $(document).on('click', '#Board .stone_collection', this.UIStoneMove);
         $(document).on('click', '#Board .move_outside', this.UIStoneMoveOut);
@@ -123,7 +132,7 @@ var Game = {
     },
 
     UIPlayAgain: function () {
-        Game.gameService.send('PlayAgain');
+        Game.gameService.sendCommand('PlayAgain');
     },
 
     UINewGame: function () {
@@ -150,7 +159,6 @@ var Game = {
     },
 
     onTableState: function (table) {
-        console.log(arguments);
 
         switch (table.Status) {
             case 0: {
@@ -344,7 +352,7 @@ var Game = {
     },
 
     stoneMoveOut: function (index) {
-        this.gameService.send('MoveOut', this.state[index].OriginalIndex);
+        this.gameService.sendCommand('MoveOut', this.state[index].OriginalIndex);
 
         var move = 31 - index + 1;
 
@@ -366,7 +374,7 @@ var Game = {
     makeMove: function (index, fromIndex, dices) {
         console.log(index, fromIndex, dices);
 
-        this.gameService.send('Move', this.currentPlayerHasKilledStones ? 0 : this.state[fromIndex].OriginalIndex, dices);
+        this.gameService.sendCommand('Move', this.currentPlayerHasKilledStones ? 0 : this.state[fromIndex].OriginalIndex, dices);
 
         this.clearStoneHighlights();
         this.removeDices(dices);

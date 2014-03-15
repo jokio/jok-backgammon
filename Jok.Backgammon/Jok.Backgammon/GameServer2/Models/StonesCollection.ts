@@ -1,6 +1,6 @@
 
 class StonesCollection {
 
-    constructor(public UserID: number, public Count: number = 0) {
+    constructor(public UserID?: number, public Count: number = 0) {
     }
 }
