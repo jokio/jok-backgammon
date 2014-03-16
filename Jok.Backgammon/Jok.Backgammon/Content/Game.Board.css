@@ -220,6 +220,24 @@
     font-size: 19px;
 }
 
+
+#Board .dices .dice.v2 {
+    display: inline-block;
+    width: 35px;
+    height: 33px;
+    margin-left: 5px;
+    margin-right: 5px;
+    border-radius: 5px;
+    color: gray;
+    padding: 13px;
+    font-family: Arial;
+    font-size: 19px;
+    background: url('/images/dice_bg2.png') top center;
+    background-size: 74px;
+    padding-top: 23px;
+    padding-right: 14px;
+}
+
 #Board .dices .dice.disabled {
     opacity: 0.6;
     color: silver;

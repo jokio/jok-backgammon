@@ -166,6 +166,8 @@
     <Content Include="Images\bg_normal.jpg" />
     <Content Include="Images\bg_bold.png" />
     <Content Include="Images\details-white.png" />
+    <Content Include="Images\dice_bg.png" />
+    <Content Include="Images\dice_bg2.png" />
     <Content Include="Images\preview.png" />
     <Content Include="Images\webplay.png" />
     <Content Include="Scripts\Bin\App.js" />
