@@ -1,6 +1,7 @@
 /// <reference path="jokplay.ts" />
 /// <reference path="models/stonescollection.ts" />
 /// <reference path="models/commands.ts" />
+/// <reference path="models/dicestate.ts" />
 /// <reference path="gameplayer.ts" />
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
@@ -9,7 +10,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
     public LastWinnerPlayer: GamePlayer;
 
-    private PendingMoves: number[];
+    private PendingDices: DiceState[];
 
 
 
@@ -20,7 +21,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.Stones = [];
         this.Players = [];
 
-        this.PendingMoves = [];
+        this.PendingDices = [];
 
         for (var i = 0; i < 32; i++) {
             this.Stones.push(new StonesCollection());
@@ -110,11 +111,14 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         for (var i = 0; i < moves.length; i++) {
             var move = moves[i];
 
+            var usedDice = this.PendingDices.filter(d => d.Number == move && d.Count > 0)[0];
+
+
             //#region Checks
             if (!player.hasKilledStones()) {
                 newPosition = from + (player.IsReversed ? -1 : 1) * move;
 
-                if (!this.PendingMoves.contains(move)) continue;
+                if (!usedDice) continue;
 
                 if (this.Stones.length <= newPosition) continue;
 
@@ -150,7 +154,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                 newGroup.Count++;
             }
 
-            this.PendingMoves.remove(move);
+            usedDice.Count--;
 
             from = newPosition;
         }
@@ -178,20 +182,22 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             filtered[filtered.length - 1];
 
 
-        var move = (!player.IsReversed ? 31 - index : index) + 1;
-        if (!this.PendingMoves.contains(move))
-            move = this.PendingMoves.filter(m => m > move)[0]
+        var dice = (!player.IsReversed ? 31 - index : index) + 1;
+        if (!this.PendingDices.contains(dice)) {
+            var diceState = this.PendingDices.filter(m => (m.Number > dice) && (m.Count > 0))[0];
+            dice = diceState && diceState.Number;
+        }
 
-        if (!move) return;
+        if (!dice) return;
 
         var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
-        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingMoves.some(m => m > move);
-        if (!this.PendingMoves.contains(move) && !forceAllowMove) return;
+        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingDices.some(m => (m.Number > dice) && (m.Count > 0));
+        if (!this.PendingDices.contains(dice) && !forceAllowMove) return;
 
         group.Count--;
         player.StonesOut++;
 
-        this.PendingMoves.remove(move);
+        this.PendingDices.remove(dice);
 
         this.next();
     }
@@ -212,6 +218,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     // helper
     next() {
         this.send('TableState', this);
+        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, false);
+
 
         // ხომ არ მორჩა?
         if (this.Stones.filter(s=> s.UserID == this.ActivePlayer.UserID && s.Count > 0).length == 0) {
@@ -219,7 +227,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             return;
         }
 
-        if (this.PendingMoves.length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
+        if (this.PendingDices.filter(d => d.Count > 0).length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
             this.ActivePlayer.send('MoveRequest');
             return;
         }
@@ -233,48 +241,43 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             return Math.floor((Math.random() * (max)) + 1);
         };
 
+
         var moves: number[] = [];
-        var displayMoves: number[] = [];
 
         do {
             moves = [];
-            displayMoves = [];
 
             for (var i = 0; i < 3; i++) {
                 var move = rand(8);
 
                 moves.push(move);
-                displayMoves.push(move);
             }
         }
         while ((moves.filter(m => m == 6).length == 3) && rand(1000000) != 6);
 
+        this.PendingDices = [];
+        moves.forEach(m => this.PendingDices.push(new DiceState(m, 1)));
+
 
         // ერთნაირი ქვების დაჯგუფება, რათა გავიგოთ წყვილი ხომ არ გაგორდა
-        var grouped = displayMoves.unique();
+        var grouped = moves.unique();
 
         // თუ სამივე ერთნაირი დაჯდა, ემატება კიდევ 3 იგივე სვლა
         if (grouped.length == 1) {
-            var move: number = grouped[0];
 
-            moves.push(move);
-            moves.push(move);
-            moves.push(move);
+            this.PendingDices.forEach(d => d.Count = 2);
         }
 
         // თუ ორი დაჯდა ერთნაირი, ემატება კიდევ 1 იგივე სვლა
         if (grouped.length == 2) {
-            var move: number = moves[0];
-            if (moves[1] == moves[2])
-                move = moves[1];
+            var dice: DiceState = this.PendingDices[2];
+            if (this.PendingDices[0].Number == this.PendingDices[1].Number)
+                dice = this.PendingDices[1];
 
-            moves.push(move);
+            dice.Count = 2;
         }
 
-        this.PendingMoves = [];
-        moves.forEach(m => this.PendingMoves.push(m));
-
-        this.send('RollingResult', moves, displayMoves, this.ActivePlayer.UserID);
+        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
     }
 
@@ -290,15 +293,15 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         if (index < 0 || index > 31 || this.Stones.length != 32 || index == -1) return false;
 
 
-        return this.PendingMoves.some(move => {
+        return this.PendingDices.filter(d => d.Count > 0).some(dice => {
             if (player.hasKilledStones()) {
-                var resurectMove = player.IsReversed ? 32 - move : move - 1;
+                var resurectMove = player.IsReversed ? 32 - dice.Number : dice.Number - 1;
 
                 return (this.Stones[resurectMove].UserID == player.UserID || this.Stones[resurectMove].Count <= 1);
             }
 
 
-            var nextMove = index + (player.IsReversed ? -1 : 1) * move;
+            var nextMove = index + (player.IsReversed ? -1 : 1) * dice.Number;
             if (nextMove < 0 || nextMove > 31) return false;
 
             return (this.Stones[nextMove].UserID == player.UserID) || (this.Stones[nextMove].Count <= 1);

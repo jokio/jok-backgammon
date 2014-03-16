@@ -6,7 +6,7 @@ var JP = {
 
         var root = opts.cbEventsRoot;
 
-        var socket = eio.Socket(opts.connectUrl, {
+        var proxy = eio.Socket(opts.connectUrl, {
             query: {
                 token: opts.token || '',
                 gameid: opts.gameid || 0,
@@ -15,9 +15,9 @@ var JP = {
             }
         });
 
-        var proxy = reconnect(socket, {
-            reconnectTimeout: opts.reconectTimeout || 60 * 60 * 1000 /* 1 Hour */
-        });
+        //var proxy = reconnect(proxy, {
+        //    reconnectTimeout: opts.reconectTimeout || 60 * 60 * 1000 /* 1 Hour */
+        //});
 
         proxy.on('message', function (msg) {
 
@@ -51,7 +51,7 @@ var JP = {
         });
 
         var _this = this;
-        proxy.on('open', function() {
+        proxy.on('open', function () {
             opts.cbOnline && opts.cbOnline();
         });
         proxy.on('close', function () {
@@ -220,11 +220,18 @@ var Game = {
         }
     },
 
-    onRollingResult: function (moves, displayMoves, activeUserID) {
+    onRollingResult: function (pendingDices, activeUserID, shakeEffect) {
 
-        this.dices = moves;
+        var pendingMoves = [];
+        pendingDices.forEach(function (d) {
+            for (var i = 0; i < d.Count; i++) {
+                pendingMoves.push(d.Number);
+            }
+        });
 
-        this.setDices(displayMoves, activeUserID);
+        this.dices = pendingMoves;
+
+        this.setDices(pendingDices, activeUserID, shakeEffect);
     },
 
     onMoveRequest: function () {
@@ -280,30 +287,40 @@ var Game = {
         this.currentPlayerHasKilledStones = playerKilledStones > 0;
     },
 
-    setDices: function (dices, userid) {
+    setDices: function (dices, userid, shakeEffect) {
 
         dices.sort(function (a, b) {
-            return b - a;
+            return b.Number - a.Number;
         });
 
-        $('#Board .dices').hide();
 
         $('#Board .dices .dice').removeClass('disabled');
 
-        var container = $('#Board .dices.' + (jok.currentUserID == userid ? 'current' : 'opponent'));
-        $('#Board .dices .dice').html('');
-        container.show();
-        container.effect("shake", function () {
+        var cbUpdate = function () {
             for (var i = 0; i < dices.length; i++) {
                 var item = $('#Board .dices .dice' + (i + 1));
-                item.attr('data-dice', dices[i]);
-                item.html(dices[i]);
+                item.attr('data-dice', dices[i].Number);
+                item.html(dices[i].Number);
+
+                if (dices[i].Count == 0)
+                    item.addClass('disabled');
             }
-        });
+        }
 
-        $('#RollingAudio')[0].play();
+        if (shakeEffect) {
+            $('#Board .dices').hide();
+            var container = $('#Board .dices.' + (jok.currentUserID == userid ? 'current' : 'opponent'));
+            $('#Board .dices .dice').html('');
+            container.show();
+            container.effect("shake", cbUpdate);
 
-        this.clearStoneHighlights();
+            $('#RollingAudio')[0].play();
+            this.clearStoneHighlights();
+        }
+        else {
+            cbUpdate();
+        }
+
     },
 
     stoneMove: function (index, fromIndex) {

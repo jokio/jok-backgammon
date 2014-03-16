@@ -42,6 +42,14 @@ var Commands;
     })(Commands.Client || (Commands.Client = {}));
     var Client = Commands.Client;
 })(Commands || (Commands = {}));
+var DiceState = (function () {
+    function DiceState(Number, Count) {
+        if (typeof Count === "undefined") { Count = 1; }
+        this.Number = Number;
+        this.Count = Count;
+    }
+    return DiceState;
+})();
 var GameTable = (function (_super) {
     __extends(GameTable, _super);
     function GameTable(GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable) {
@@ -59,7 +67,7 @@ var GameTable = (function (_super) {
         this.Stones = [];
         this.Players = [];
 
-        this.PendingMoves = [];
+        this.PendingDices = [];
 
         for (var i = 0; i < 32; i++) {
             this.Stones.push(new StonesCollection());
@@ -152,10 +160,14 @@ var GameTable = (function (_super) {
         for (var i = 0; i < moves.length; i++) {
             var move = moves[i];
 
+            var usedDice = this.PendingDices.filter(function (d) {
+                return d.Number == move && d.Count > 0;
+            })[0];
+
             if (!player.hasKilledStones()) {
                 newPosition = from + (player.IsReversed ? -1 : 1) * move;
 
-                if (!this.PendingMoves.contains(move))
+                if (!usedDice)
                     continue;
 
                 if (this.Stones.length <= newPosition)
@@ -187,7 +199,7 @@ var GameTable = (function (_super) {
                 newGroup.Count++;
             }
 
-            this.PendingMoves.remove(move);
+            usedDice.Count--;
 
             from = newPosition;
         }
@@ -221,26 +233,28 @@ var GameTable = (function (_super) {
 
         var maxLeftStone = !player.IsReversed ? filtered[0] : filtered[filtered.length - 1];
 
-        var move = (!player.IsReversed ? 31 - index : index) + 1;
-        if (!this.PendingMoves.contains(move))
-            move = this.PendingMoves.filter(function (m) {
-                return m > move;
+        var dice = (!player.IsReversed ? 31 - index : index) + 1;
+        if (!this.PendingDices.contains(dice)) {
+            var diceState = this.PendingDices.filter(function (m) {
+                return (m.Number > dice) && (m.Count > 0);
             })[0];
+            dice = diceState && diceState.Number;
+        }
 
-        if (!move)
+        if (!dice)
             return;
 
         var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
-        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingMoves.some(function (m) {
-            return m > move;
+        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingDices.some(function (m) {
+            return (m.Number > dice) && (m.Count > 0);
         });
-        if (!this.PendingMoves.contains(move) && !forceAllowMove)
+        if (!this.PendingDices.contains(dice) && !forceAllowMove)
             return;
 
         group.Count--;
         player.StonesOut++;
 
-        this.PendingMoves.remove(move);
+        this.PendingDices.remove(dice);
 
         this.next();
     };
@@ -264,6 +278,7 @@ var GameTable = (function (_super) {
     GameTable.prototype.next = function () {
         var _this = this;
         this.send('TableState', this);
+        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, false);
 
         if (this.Stones.filter(function (s) {
             return s.UserID == _this.ActivePlayer.UserID && s.Count > 0;
@@ -272,7 +287,9 @@ var GameTable = (function (_super) {
             return;
         }
 
-        if (this.PendingMoves.length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
+        if (this.PendingDices.filter(function (d) {
+            return d.Count > 0;
+        }).length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
             this.ActivePlayer.send('MoveRequest');
             return;
         }
@@ -288,46 +305,41 @@ var GameTable = (function (_super) {
         };
 
         var moves = [];
-        var displayMoves = [];
 
         do {
             moves = [];
-            displayMoves = [];
 
             for (var i = 0; i < 3; i++) {
                 var move = rand(8);
 
                 moves.push(move);
-                displayMoves.push(move);
             }
         } while((moves.filter(function (m) {
             return m == 6;
         }).length == 3) && rand(1000000) != 6);
 
-        var grouped = displayMoves.unique();
+        this.PendingDices = [];
+        moves.forEach(function (m) {
+            return _this.PendingDices.push(new DiceState(m, 1));
+        });
+
+        var grouped = moves.unique();
 
         if (grouped.length == 1) {
-            var move = grouped[0];
-
-            moves.push(move);
-            moves.push(move);
-            moves.push(move);
+            this.PendingDices.forEach(function (d) {
+                return d.Count = 2;
+            });
         }
 
         if (grouped.length == 2) {
-            var move = grouped[0];
-            if (grouped[1] == grouped[2])
-                move = grouped[1];
+            var dice = this.PendingDices[2];
+            if (this.PendingDices[0].Number == this.PendingDices[1].Number)
+                dice = this.PendingDices[1];
 
-            moves.push(move);
+            dice.Count = 2;
         }
 
-        this.PendingMoves = [];
-        moves.forEach(function (m) {
-            return _this.PendingMoves.push(m);
-        });
-
-        this.send('RollingResult', moves, displayMoves, this.ActivePlayer.UserID);
+        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
     };
 
@@ -350,14 +362,16 @@ var GameTable = (function (_super) {
         if (index < 0 || index > 31 || this.Stones.length != 32 || index == -1)
             return false;
 
-        return this.PendingMoves.some(function (move) {
+        return this.PendingDices.filter(function (d) {
+            return d.Count > 0;
+        }).some(function (dice) {
             if (player.hasKilledStones()) {
-                var resurectMove = player.IsReversed ? 32 - move : move - 1;
+                var resurectMove = player.IsReversed ? 32 - dice.Number : dice.Number - 1;
 
                 return (_this.Stones[resurectMove].UserID == player.UserID || _this.Stones[resurectMove].Count <= 1);
             }
 
-            var nextMove = index + (player.IsReversed ? -1 : 1) * move;
+            var nextMove = index + (player.IsReversed ? -1 : 1) * dice.Number;
             if (nextMove < 0 || nextMove > 31)
                 return false;
 

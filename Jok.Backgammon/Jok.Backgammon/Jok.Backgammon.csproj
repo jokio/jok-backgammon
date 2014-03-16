@@ -215,6 +215,7 @@
     <TypeScriptCompile Include="GameServer2\GamePlayer.ts" />
     <TypeScriptCompile Include="GameServer2\GameTable.ts" />
     <TypeScriptCompile Include="GameServer2\JokPlay.ts" />
+    <TypeScriptCompile Include="GameServer2\Models\DiceState.ts" />
     <TypeScriptCompile Include="GameServer2\Models\StonesCollection.ts" />
     <TypeScriptCompile Include="GameServer2\Server.ts" />
     <TypeScriptCompile Include="Scripts\typings\jok\jok.d.ts" />
