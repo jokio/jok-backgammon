@@ -143,15 +143,14 @@ var Game = {
 
     // Server Callbacks -------------------------------------------
     onOnline: function () {
-
+        console.log('online');
     },
 
     onOffline: function () {
-
-    },
-
-    onClose: function () {
-
+        console.log('offline');
+        $('#Notification .item').hide();
+        $('#Notification .item.quit span').html('');
+        $('#Notification .item.quit').show();
     },
 
     onUserAuthenticated: function (userid) {

@@ -47,29 +47,36 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             s.Count = 0;
         });
 
-        this.Stones[0].UserID = this.ActivePlayer.UserID;
-        this.Stones[0].Count = 3;
+        //this.Stones[0].UserID = this.ActivePlayer.UserID;
+        //this.Stones[0].Count = 3;
 
-        this.Stones[7].UserID = opponent.UserID;
-        this.Stones[7].Count = 7;
+        //this.Stones[7].UserID = opponent.UserID;
+        //this.Stones[7].Count = 7;
 
-        this.Stones[9].UserID = opponent.UserID;
-        this.Stones[9].Count = 5;
+        //this.Stones[9].UserID = opponent.UserID;
+        //this.Stones[9].Count = 5;
 
-        this.Stones[15].UserID = this.ActivePlayer.UserID;
-        this.Stones[15].Count = 5;
+        //this.Stones[15].UserID = this.ActivePlayer.UserID;
+        //this.Stones[15].Count = 5;
 
-        this.Stones[16].UserID = opponent.UserID;
-        this.Stones[16].Count = 5;
+        //this.Stones[16].UserID = opponent.UserID;
+        //this.Stones[16].Count = 5;
 
-        this.Stones[22].UserID = this.ActivePlayer.UserID;
-        this.Stones[22].Count = 5;
+        //this.Stones[22].UserID = this.ActivePlayer.UserID;
+        //this.Stones[22].Count = 5;
 
-        this.Stones[24].UserID = this.ActivePlayer.UserID;
-        this.Stones[24].Count = 7;
+        //this.Stones[24].UserID = this.ActivePlayer.UserID;
+        //this.Stones[24].Count = 7;
 
-        this.Stones[31].UserID = opponent.UserID;
-        this.Stones[31].Count = 3;
+        //this.Stones[31].UserID = opponent.UserID;
+        //this.Stones[31].Count = 3;
+
+        this.Stones[0].UserID = opponent.UserID;
+        this.Stones[0].Count = 7;
+
+        this.Stones[31].UserID = this.ActivePlayer.UserID;
+        this.Stones[31].Count = 7;
+
 
         this.send('TableState', this);
 
@@ -177,27 +184,32 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         var filtered = this.Stones.filter(s => s.UserID == player.UserID && s.Count > 0);
 
-        var maxLeftStone = !player.IsReversed ?
-            filtered[0] :
-            filtered[filtered.length - 1];
+        var maxLeftStone = filtered[player.IsReversed ? filtered.length - 1 : 0];
 
 
-        var dice = (!player.IsReversed ? 31 - index : index) + 1;
-        if (!this.PendingDices.contains(dice)) {
-            var diceState = this.PendingDices.filter(m => (m.Number > dice) && (m.Count > 0))[0];
-            dice = diceState && diceState.Number;
+        var move = (!player.IsReversed ? 31 - index : index) + 1;
+
+        // თავდაპირველად ვიღებთ გამოსული ქვის შესაბამის კამათელს
+        var usedDice = this.PendingDices.filter(d => d.Number == move && d.Count > 0)[0];
+
+        // თუ ასეთი კამათელი არ მოიძებნა, მაშინ უკვე ვიღებთ უფრო დიდ კამათელს (შეიძლება რაც გააგორა იმაზე აღარ ქონდა და შემდეგ ქვას გამოვიდას შემთხვევაა ეს)
+        if (!usedDice) {
+            usedDice = this.PendingDices.filter(m => (m.Number > move) && (m.Count > 0))[0];
+            var isMaxLeftStone = true;
         }
 
-        if (!dice) return;
+        // თუ კამათელი ვერ მოიძებნა
+        if (!usedDice) return;
 
+
+        // შემოწმება გამოსული ქვის მარცხნივ ხომ არ ქონდა რაიმე ქვას და ისე ხომ არ გამოდის 
         var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
-        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingDices.some(m => (m.Number > dice) && (m.Count > 0));
-        if (!this.PendingDices.contains(dice) && !forceAllowMove) return;
+        if (isMaxLeftStone && maxLeftStoneIndex != index) return;
 
         group.Count--;
         player.StonesOut++;
 
-        this.PendingDices.remove(dice);
+        usedDice.Count--;
 
         this.next();
     }

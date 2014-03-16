@@ -95,29 +95,11 @@ var GameTable = (function (_super) {
             s.Count = 0;
         });
 
-        this.Stones[0].UserID = this.ActivePlayer.UserID;
-        this.Stones[0].Count = 3;
+        this.Stones[0].UserID = opponent.UserID;
+        this.Stones[0].Count = 7;
 
-        this.Stones[7].UserID = opponent.UserID;
-        this.Stones[7].Count = 7;
-
-        this.Stones[9].UserID = opponent.UserID;
-        this.Stones[9].Count = 5;
-
-        this.Stones[15].UserID = this.ActivePlayer.UserID;
-        this.Stones[15].Count = 5;
-
-        this.Stones[16].UserID = opponent.UserID;
-        this.Stones[16].Count = 5;
-
-        this.Stones[22].UserID = this.ActivePlayer.UserID;
-        this.Stones[22].Count = 5;
-
-        this.Stones[24].UserID = this.ActivePlayer.UserID;
-        this.Stones[24].Count = 7;
-
-        this.Stones[31].UserID = opponent.UserID;
-        this.Stones[31].Count = 3;
+        this.Stones[31].UserID = this.ActivePlayer.UserID;
+        this.Stones[31].Count = 7;
 
         this.send('TableState', this);
 
@@ -231,30 +213,32 @@ var GameTable = (function (_super) {
             return s.UserID == player.UserID && s.Count > 0;
         });
 
-        var maxLeftStone = !player.IsReversed ? filtered[0] : filtered[filtered.length - 1];
+        var maxLeftStone = filtered[player.IsReversed ? filtered.length - 1 : 0];
 
-        var dice = (!player.IsReversed ? 31 - index : index) + 1;
-        if (!this.PendingDices.contains(dice)) {
-            var diceState = this.PendingDices.filter(function (m) {
-                return (m.Number > dice) && (m.Count > 0);
+        var move = (!player.IsReversed ? 31 - index : index) + 1;
+
+        var usedDice = this.PendingDices.filter(function (d) {
+            return d.Number == move && d.Count > 0;
+        })[0];
+
+        if (!usedDice) {
+            usedDice = this.PendingDices.filter(function (m) {
+                return (m.Number > move) && (m.Count > 0);
             })[0];
-            dice = diceState && diceState.Number;
+            var isMaxLeftStone = true;
         }
 
-        if (!dice)
+        if (!usedDice)
             return;
 
         var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
-        var forceAllowMove = (maxLeftStoneIndex == index) && this.PendingDices.some(function (m) {
-            return (m.Number > dice) && (m.Count > 0);
-        });
-        if (!this.PendingDices.contains(dice) && !forceAllowMove)
+        if (isMaxLeftStone && maxLeftStoneIndex != index)
             return;
 
         group.Count--;
         player.StonesOut++;
 
-        this.PendingDices.remove(dice);
+        usedDice.Count--;
 
         this.next();
     };

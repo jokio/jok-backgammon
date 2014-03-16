@@ -274,20 +274,20 @@ namespace Jok.Backgammon.GameServer
                 Stones.Where(s => s.UserID == player.UserID && s.Count > 0).LastOrDefault();
 
 
-            var move = (!player.IsReversed ? 31 - index : index) + 1;
-            if (!PendingMoves.Contains(move))
-                move = PendingMoves.Where(m => m > move).FirstOrDefault();
+            var dice = (!player.IsReversed ? 31 - index : index) + 1;
+            if (!PendingMoves.Contains(dice))
+                dice = PendingMoves.Where(m => m > dice).FirstOrDefault();
 
-            if (move == null) return;
+            if (dice == null) return;
 
             var maxLeftStoneIndex = Stones.IndexOf(maxLeftStone);
-            var forceAllowMove = (maxLeftStoneIndex == index) && PendingMoves.Any(m => m > move);
-            if (!PendingMoves.Contains(move) && !forceAllowMove) return;
+            var forceAllowMove = (maxLeftStoneIndex == index) && PendingMoves.Any(m => m > dice);
+            if (!PendingMoves.Contains(dice) && !forceAllowMove) return;
 
             group.Count--;
             player.StonesOut++;
 
-            PendingMoves.Remove(move);
+            PendingMoves.Remove(dice);
 
             Next();
         }
