@@ -155,7 +155,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Audio\button-19.mp3" />
+    <Content Include="Audio\button-19.wav" />
+    <Content Include="Audio\button-20.mp3" />
+    <Content Include="Audio\button-20.wav" />
     <Content Include="Audio\DicesRolling.mp3" />
+    <Content Include="Audio\wall.mp3" />
+    <Content Include="Audio\wall.wav" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\Game.Board.css" />
     <Content Include="Content\_GithubLogo.css" />
@@ -173,6 +179,7 @@
     <Content Include="Scripts\Bin\App.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Audio\wall.webm" />
     <None Include="Properties\PublishProfiles\Jok.Backgammon.pubxml" />
     <Content Include="Scripts\Bin\App.js.map" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />

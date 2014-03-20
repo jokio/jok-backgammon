@@ -50,37 +50,37 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.LastMovedStoneIndexes = [];
 
-        this.Stones[0].UserID = this.ActivePlayer.UserID;
-        this.Stones[0].Count = 3;
+        //this.Stones[0].UserID = this.ActivePlayer.UserID;
+        //this.Stones[0].Count = 3;
 
-        this.Stones[7].UserID = opponent.UserID;
-        this.Stones[7].Count = 7;
+        //this.Stones[7].UserID = opponent.UserID;
+        //this.Stones[7].Count = 7;
 
-        this.Stones[9].UserID = opponent.UserID;
-        this.Stones[9].Count = 5;
+        //this.Stones[9].UserID = opponent.UserID;
+        //this.Stones[9].Count = 5;
 
-        this.Stones[15].UserID = this.ActivePlayer.UserID;
-        this.Stones[15].Count = 5;
+        //this.Stones[15].UserID = this.ActivePlayer.UserID;
+        //this.Stones[15].Count = 5;
 
-        this.Stones[16].UserID = opponent.UserID;
-        this.Stones[16].Count = 5;
+        //this.Stones[16].UserID = opponent.UserID;
+        //this.Stones[16].Count = 5;
 
-        this.Stones[22].UserID = this.ActivePlayer.UserID;
-        this.Stones[22].Count = 5;
+        //this.Stones[22].UserID = this.ActivePlayer.UserID;
+        //this.Stones[22].Count = 5;
 
-        this.Stones[24].UserID = this.ActivePlayer.UserID;
-        this.Stones[24].Count = 7;
+        //this.Stones[24].UserID = this.ActivePlayer.UserID;
+        //this.Stones[24].Count = 7;
 
-        this.Stones[31].UserID = opponent.UserID;
-        this.Stones[31].Count = 3;
+        //this.Stones[31].UserID = opponent.UserID;
+        //this.Stones[31].Count = 3;
 
-        //for (var i = 0; i < 8; i++) {
-        //    this.Stones[i].UserID = opponent.UserID;
-        //    this.Stones[i].Count = 2;
-        //}
+        for (var i = 0; i < 8; i++) {
+            this.Stones[i].UserID = opponent.UserID;
+            this.Stones[i].Count = 2;
+        }
 
-        //this.Stones[31].UserID = this.ActivePlayer.UserID;
-        //this.Stones[31].Count = 7;
+        this.Stones[31].UserID = this.ActivePlayer.UserID;
+        this.Stones[31].Count = 7;
 
 
         this.send('TableState', this);
@@ -191,6 +191,12 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         var group = this.Stones[index];
         if (group.UserID != player.UserID || group.Count <= 0) return;
+
+
+        this.LastMovedStoneIndexes = [{
+            UserID: -1,
+            Index: -1
+        }];
 
         var filtered = this.Stones.filter(s => s.UserID == player.UserID && s.Count > 0);
 

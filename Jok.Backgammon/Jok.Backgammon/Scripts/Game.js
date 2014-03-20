@@ -90,6 +90,8 @@ var Game = {
 
     currentPlayerHasKilledStones: undefined,
 
+    stoneMovingFromID: undefined,
+
 
 
     init: function () {
@@ -109,10 +111,18 @@ var Game = {
         });
 
         $(document).on('click', '#Board .stone_collection', this.UIStoneMove);
+        $(document).on('mousedown', '#Board .stone_collection', this.UIStoneStartMoving);
+        $(document).on('mouseup', '#Board .stone_collection', this.UIStoneFinishMoving);
+        $(document).on('mousemove', '#Board', this.UIStoneMovingOverBoard);
         $(document).on('click', '#Board .move_outside', this.UIStoneMoveOut);
+        $(document).on('mouseup', '#Board .move_outside', this.UIStoneMoveOut);
         $(document).on('click', '.play_again', Game.UIPlayAgain);
         $(document).on('click', '.new_game', Game.UINewGame);
 
+        $(document).on('mouseup', '#Board .mouse_drag_moving', function () {
+            $(this).hide();
+            Game.stoneMovingFromID = undefined;
+        });
     },
 
 
@@ -125,10 +135,48 @@ var Game = {
         Game.stoneMove(colid, fromColID);
     },
 
+    UIStoneStartMoving: function () {
+        var colid = $(this).attr('data-id');
+        var fromColID = $(this).attr('data-from-id');
+
+        if (fromColID) return;
+        if (!Game.stoneMove(colid)) return;
+
+        Game.stoneMovingFromID = colid;
+        Game.refreshMovingStone();
+
+
+        $('#Board .stone.mouse_drag_moving').show();
+    },
+
+    UIStoneFinishMoving: function () {
+        try{
+            var colid = $(this).attr('data-id');
+            var fromColID = $(this).attr('data-from-id');
+
+            $('#Board .stone.mouse_drag_moving').hide();
+
+            if (Game.stoneMovingFromID == colid) return;
+
+            Game.stoneMove(colid, fromColID);
+        }
+        finally {
+            Game.stoneMovingFromID = undefined;
+        }
+    },
+
+    UIStoneMovingOverBoard: function() {
+        if (!Game.stoneMovingFromID) return;
+
+        Game.refreshMovingStone();
+    },
+
     UIStoneMoveOut: function () {
         var fromColID = $(this).attr('data-from-id');
 
         Game.stoneMoveOut(fromColID);
+
+        $('#Board .stone.mouse_drag_moving').hide();
     },
 
     UIPlayAgain: function () {
@@ -180,17 +228,18 @@ var Game = {
                 jok.setPlayer(1, jok.currentUserID);
                 jok.setPlayer(2, opponentPlayer.UserID);
 
-
+                var isMove;
                 if (table.LastMovedStoneIndexes && table.LastMovedStoneIndexes.length) {
                     table.LastMovedStoneIndexes.forEach(function (item) {
 
                         if (table.Stones[item.Index] && (item.UserID != jok.currentUserID))
                             table.Stones[item.Index].HighlightMe = true;
                     });
+
+                    isMove = true;
                 }
 
-
-                this.setState(table.Stones, currentPlayer.IsReversed, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
+                this.setState(table.Stones, currentPlayer.IsReversed, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount, isMove);
                 break;
             }
 
@@ -261,7 +310,7 @@ var Game = {
 
 
     // Methods ----------------------------------------------------
-    setState: function (state, reverseNumbers, playerKilledStones, opponentKilledStones) {
+    setState: function (state, reverseNumbers, playerKilledStones, opponentKilledStones, isMove) {
 
         // stuff
         state.forEach(function (item, i) {
@@ -295,6 +344,10 @@ var Game = {
             for (var i = 0; i < opponentKilledStones; i++) {
                 $('#Board .opponent_killed_stones').append('<div class="stone opponent">');
             }
+        }
+
+        if (isMove) {
+            $('#MoveAudio')[0].play();
         }
 
         this.currentPlayerHasKilledStones = playerKilledStones > 0;
@@ -349,7 +402,7 @@ var Game = {
 
 
         if (!fromIndex && fromIndex != 0 && !this.currentPlayerHasKilledStones) {
-            this.allPossibleMoves(index);
+            var result = this.allPossibleMoves(index);
 
             if (this.hasEveryStonesInside()) {
 
@@ -369,8 +422,12 @@ var Game = {
                 if (this.state[index].Count > 0 && this.dices.indexOf(move) > -1 || forceAllowMove) {
                     $('#Board .move_outside').attr('data-from-id', index);
                     $('#Board .move_outside').show();
+                    result = true;
                 }
+
             }
+
+            return result;
         }
         else {
             if (this.state[index].dices)
@@ -518,6 +575,8 @@ var Game = {
 
         var _this = this;
 
+        var hasAnyMove = false;
+
         this.getAllDiceMoves(this.dices, col).forEach(function (item) {
 
             var index = col + item;
@@ -529,7 +588,11 @@ var Game = {
 
             if (_this.checkMove(index))
                 _this.setStoneHighlight(index, col);
+
+            hasAnyMove = true;
         });
+
+        return hasAnyMove;
     },
 
     getAllDiceMoves: function (dices, col) {
@@ -675,6 +738,13 @@ var Game = {
         }
 
         return true;
+    },
+
+    refreshMovingStone: function () {
+        var offset = $('#Board').offset();
+        var dragStone = $('#Board .stone.mouse_drag_moving');
+        dragStone.css('left', event.pageX - offset.left - 20 + 'px');
+        dragStone.css('top', event.pageY - offset.top - 20 + 'px');
     },
 };
 

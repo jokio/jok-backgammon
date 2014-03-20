@@ -69,6 +69,7 @@
     position: absolute;
     width: 50px;
     min-height: 39px;
+    z-index: 2;
 }
 
 
@@ -90,6 +91,15 @@
     z-index: 10;
     position: relative;
     margin: 1px 7px;
+    z-index: 2;
+}
+
+#Board .stone.mouse_drag_moving {
+    opacity: .6;
+    position: absolute;
+    display: none;
+    z-index: 1;
+
 }
 
 #Board .items_top .stone.near {
@@ -111,6 +121,7 @@
 #Board .stone.opponent {
     border: 1px solid rgb(80, 80, 80);
     background: gray;
+    z-index: 1;
 }
 
 #Board .stone.highlight {
@@ -145,6 +156,7 @@
     font-family: Arial;
     cursor: pointer;
     display: none;
+    z-index: 2;
 }
 
 #Board .stone_collection:hover .stone.highlight {
