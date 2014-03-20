@@ -153,6 +153,11 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+#Board .stone.move_highlight {
+    opacity: 0.8;
+    background: rgb(137, 189, 121);
+}
+
 #Board .side_container .stone_collection:nth-child(1) {
     left: 0px;
 }
@@ -257,7 +262,6 @@
     left: 50%;
     bottom: 50px;
     margin-left: -26px;
-    display: none;
 }
 
 #Board .opponent_killed_stones {
@@ -265,7 +269,6 @@
     left: 50%;
     top: 50px;
     margin-left: -26px;
-    display: none;
 }
 
 #Board .opponent_killed_stones .stone,

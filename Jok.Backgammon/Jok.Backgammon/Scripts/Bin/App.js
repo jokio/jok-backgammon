@@ -95,11 +95,31 @@ var GameTable = (function (_super) {
             s.Count = 0;
         });
 
-        this.Stones[0].UserID = opponent.UserID;
-        this.Stones[0].Count = 7;
+        this.LastMovedStoneIndexes = [];
 
-        this.Stones[31].UserID = this.ActivePlayer.UserID;
-        this.Stones[31].Count = 7;
+        this.Stones[0].UserID = this.ActivePlayer.UserID;
+        this.Stones[0].Count = 3;
+
+        this.Stones[7].UserID = opponent.UserID;
+        this.Stones[7].Count = 7;
+
+        this.Stones[9].UserID = opponent.UserID;
+        this.Stones[9].Count = 5;
+
+        this.Stones[15].UserID = this.ActivePlayer.UserID;
+        this.Stones[15].Count = 5;
+
+        this.Stones[16].UserID = opponent.UserID;
+        this.Stones[16].Count = 5;
+
+        this.Stones[22].UserID = this.ActivePlayer.UserID;
+        this.Stones[22].Count = 5;
+
+        this.Stones[24].UserID = this.ActivePlayer.UserID;
+        this.Stones[24].Count = 7;
+
+        this.Stones[31].UserID = opponent.UserID;
+        this.Stones[31].Count = 3;
 
         this.send('TableState', this);
 
@@ -184,6 +204,11 @@ var GameTable = (function (_super) {
             usedDice.Count--;
 
             from = newPosition;
+
+            this.LastMovedStoneIndexes = [{
+                    Index: newPosition,
+                    UserID: player.UserID
+                }];
         }
 
         this.next();

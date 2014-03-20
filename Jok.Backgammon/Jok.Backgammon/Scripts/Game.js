@@ -162,6 +162,7 @@ var Game = {
         switch (table.Status) {
             case 0: {
                 jok.setPlayer(1, table.Players[0].UserID);
+                jok.setPlayer(2, null);
 
                 $('#Notification .item').hide();
                 $('#Notification .item.waiting_opponent').show();
@@ -178,6 +179,16 @@ var Game = {
 
                 jok.setPlayer(1, jok.currentUserID);
                 jok.setPlayer(2, opponentPlayer.UserID);
+
+
+                if (table.LastMovedStoneIndexes && table.LastMovedStoneIndexes.length) {
+                    table.LastMovedStoneIndexes.forEach(function (item) {
+
+                        if (table.Stones[item.Index] && (item.UserID != jok.currentUserID))
+                            table.Stones[item.Index].HighlightMe = true;
+                    });
+                }
+
 
                 this.setState(table.Stones, currentPlayer.IsReversed, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
                 break;
@@ -266,21 +277,24 @@ var Game = {
 
         var _this = this;
 
+
         state.forEach(function (item, i) {
-            _this.setStonesCollection(i, item.Count, item.UserID == jok.currentUserID)
+            _this.setStonesCollection(i, item.Count, item.UserID == jok.currentUserID, item.HighlightMe)
         });
 
-        $('#Board .player_killed_stones').hide();
-        $('#Board .opponent_killed_stones').hide();
+        $('#Board .player_killed_stones').empty();
+        $('#Board .opponent_killed_stones').empty();
 
         if (playerKilledStones) {
-            $('#Board .player_killed_stones').show();
-            $('#Board .player_killed_stones .stone').html(playerKilledStones == 1 ? '' : playerKilledStones);
+            for (var i = 0; i < playerKilledStones; i++) {
+                $('#Board .player_killed_stones').append('<div class="stone">');
+            }
         }
 
         if (opponentKilledStones) {
-            $('#Board .opponent_killed_stones').show();
-            $('#Board .opponent_killed_stones .stone').html(opponentKilledStones == 1 ? '' : opponentKilledStones);
+            for (var i = 0; i < opponentKilledStones; i++) {
+                $('#Board .opponent_killed_stones').append('<div class="stone opponent">');
+            }
         }
 
         this.currentPlayerHasKilledStones = playerKilledStones > 0;
@@ -420,7 +434,7 @@ var Game = {
         });
     },
 
-    setStonesCollection: function (index, count, isPlayerStones) {
+    setStonesCollection: function (index, count, isPlayerStones, isHighlighted) {
         var container = $('#Board .stone_collection[data-id=' + index + ']');
 
         container.find('.stone').remove();
@@ -437,6 +451,19 @@ var Game = {
                 item.addClass('near2');
 
             container.append(item);
+        }
+
+        if (isHighlighted) {
+            var lastStone = container.find('.stone');
+            lastStone = lastStone[index > 15 ? 0 : lastStone.length - 1];
+
+            if (lastStone) {
+                $(lastStone).addClass('move_highlight');
+
+                setTimeout(function () {
+                    $(lastStone).removeClass('move_highlight');
+                }, 500);
+            }
         }
     },
 
