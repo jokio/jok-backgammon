@@ -1,6 +1,5 @@
 /// <reference path="jokplay.ts" />
 /// <reference path="models/stonescollection.ts" />
-/// <reference path="models/commands.ts" />
 /// <reference path="models/dicestate.ts" />
 /// <reference path="gameplayer.ts" />
 
@@ -75,8 +74,10 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.Stones[31].UserID = opponent.UserID;
         this.Stones[31].Count = 3;
 
-        //this.Stones[0].UserID = opponent.UserID;
-        //this.Stones[0].Count = 7;
+        //for (var i = 0; i < 8; i++) {
+        //    this.Stones[i].UserID = opponent.UserID;
+        //    this.Stones[i].Count = 2;
+        //}
 
         //this.Stones[31].UserID = this.ActivePlayer.UserID;
         //this.Stones[31].Count = 7;
@@ -300,12 +301,19 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
+
+
+        if (!this.hasAnyMoves()) {
+            setTimeout(this.next.bind(this), 2000);
+        }
     }
 
     hasAnyMoves() {
         if (!this.ActivePlayer) return false;
 
-        return this.Stones.filter(s => s.UserID == this.ActivePlayer.UserID && s.Count > 0).some(s => this.checkMoves(this.ActivePlayer, s));
+        return this.Stones
+            .filter(s => s.UserID == this.ActivePlayer.UserID && s.Count > 0)
+            .some(s => this.checkMoves(this.ActivePlayer, s));
     }
 
     checkMoves(player: GamePlayer, stoneCollection: StonesCollection): boolean {

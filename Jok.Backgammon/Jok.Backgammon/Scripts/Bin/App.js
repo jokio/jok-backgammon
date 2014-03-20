@@ -33,15 +33,6 @@ var StonesCollection = (function () {
     }
     return StonesCollection;
 })();
-var Commands;
-(function (Commands) {
-    (function (Client) {
-        Client[Client["TableState"] = 0] = "TableState";
-        Client[Client["RollingResult"] = 1] = "RollingResult";
-        Client[Client["MoveRequest"] = 2] = "MoveRequest";
-    })(Commands.Client || (Commands.Client = {}));
-    var Client = Commands.Client;
-})(Commands || (Commands = {}));
 var DiceState = (function () {
     function DiceState(Number, Count) {
         if (typeof Count === "undefined") { Count = 1; }
@@ -120,6 +111,11 @@ var GameTable = (function (_super) {
 
         this.Stones[31].UserID = opponent.UserID;
         this.Stones[31].Count = 3;
+
+        for (var i = 0; i < 8; i++) {
+            this.Stones[i].UserID = opponent.UserID;
+            this.Stones[i].Count = 2;
+        }
 
         this.send('TableState', this);
 
@@ -350,6 +346,10 @@ var GameTable = (function (_super) {
 
         this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
+
+        if (!this.hasAnyMoves()) {
+            setTimeout(this.next.bind(this), 2000);
+        }
     };
 
     GameTable.prototype.hasAnyMoves = function () {
