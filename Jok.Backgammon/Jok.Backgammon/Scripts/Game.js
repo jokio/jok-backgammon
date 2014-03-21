@@ -207,6 +207,9 @@ var Game = {
 
     onTableState: function (table) {
 
+        this.isMoveAllowed = false;
+        this.clearStoneHighlights();
+
         switch (table.Status) {
             case 0: {
                 jok.setPlayer(1, table.Players[0].UserID);

@@ -22,6 +22,8 @@ var GamePlayer = (function (_super) {
         this.StonesOut = 0;
         this.IsReversed = false;
         this.KilledStonsCount = 0;
+        this.WaitingStartTime = 0;
+        this.ReservedTime = 6 * 60 * 1000;
     };
     return GamePlayer;
 })(JP.GamePlayerBase);
@@ -41,6 +43,12 @@ var DiceState = (function () {
     }
     return DiceState;
 })();
+var Timers = (function () {
+    function Timers() {
+    }
+    return Timers;
+})();
+
 var GameTable = (function (_super) {
     __extends(GameTable, _super);
     function GameTable(GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable) {
@@ -88,13 +96,31 @@ var GameTable = (function (_super) {
 
         this.LastMovedStoneIndexes = [];
 
-        for (var i = 0; i < 8; i++) {
-            this.Stones[i].UserID = opponent.UserID;
-            this.Stones[i].Count = 2;
-        }
+        this.Stones[0].UserID = this.ActivePlayer.UserID;
+        this.Stones[0].Count = 3;
 
-        this.Stones[31].UserID = this.ActivePlayer.UserID;
-        this.Stones[31].Count = 7;
+        this.Stones[7].UserID = opponent.UserID;
+        this.Stones[7].Count = 7;
+
+        this.Stones[9].UserID = opponent.UserID;
+        this.Stones[9].Count = 5;
+
+        this.Stones[15].UserID = this.ActivePlayer.UserID;
+        this.Stones[15].Count = 5;
+
+        this.Stones[16].UserID = opponent.UserID;
+        this.Stones[16].Count = 5;
+
+        this.Stones[22].UserID = this.ActivePlayer.UserID;
+        this.Stones[22].Count = 5;
+
+        this.Stones[24].UserID = this.ActivePlayer.UserID;
+        this.Stones[24].Count = 7;
+
+        this.Stones[31].UserID = opponent.UserID;
+        this.Stones[31].Count = 3;
+
+        Timers.MoveWaitingTimeout = undefined;
 
         this.send('TableState', this);
 
@@ -214,30 +240,8 @@ var GameTable = (function (_super) {
                 Index: -1
             }];
 
-        var filtered = this.Stones.filter(function (s) {
-            return s.UserID == player.UserID && s.Count > 0;
-        });
-
-        var maxLeftStone = filtered[player.IsReversed ? filtered.length - 1 : 0];
-
-        var move = (!player.IsReversed ? 31 - index : index) + 1;
-
-        var usedDice = this.PendingDices.filter(function (d) {
-            return d.Number == move && d.Count > 0;
-        })[0];
-
-        if (!usedDice) {
-            usedDice = this.PendingDices.filter(function (m) {
-                return (m.Number > move) && (m.Count > 0);
-            })[0];
-            var isMaxLeftStone = true;
-        }
-
+        var usedDice = this.checkMoveOut(player, index);
         if (!usedDice)
-            return;
-
-        var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
-        if (isMaxLeftStone && maxLeftStoneIndex != index)
             return;
 
         group.Count--;
@@ -282,6 +286,9 @@ var GameTable = (function (_super) {
             this.ActivePlayer.send('MoveRequest');
             return;
         }
+
+        clearTimeout(Timers.MoveWaitingTimeout);
+        this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
 
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
@@ -331,6 +338,15 @@ var GameTable = (function (_super) {
         this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
 
+        Timers.MoveWaitingTimeout = setTimeout(function () {
+            var interval = GameTable.PLAY_RESERVED_TIME_INTERVAL;
+            if (interval > _this.ActivePlayer.ReservedTime)
+                interval = _this.ActivePlayer.ReservedTime;
+
+            _this.ActivePlayer.WaitingStartTime = Date.now();
+            Timers.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
+        }, GameTable.PLAY_FOR_ROLL_TIME);
+
         if (!this.hasAnyMoves()) {
             setTimeout(this.next.bind(this), 2000);
         }
@@ -348,6 +364,73 @@ var GameTable = (function (_super) {
         });
     };
 
+    GameTable.prototype.makeBotMove = function () {
+        var _this = this;
+        this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
+
+        console.log('');
+        console.log('');
+        console.log('');
+        console.log('');
+        console.log('');
+
+        if (this.ActivePlayer.KilledStonsCount > 0) {
+            this.PendingDices.forEach(function (dice) {
+                var length = dice.Count;
+                for (var j = 0; j < length; j++) {
+                    if (_this.ActivePlayer.KilledStonsCount > 0) {
+                        var fromStone = _this.Stones.filter(function (s, i) {
+                            return (s.UserID == _this.ActivePlayer.UserID) && (s.Count > 0) && _this.checkOneMove(_this.ActivePlayer, dice, i) > -1;
+                        })[0];
+                        var index = _this.Stones.indexOf(fromStone);
+
+                        if (index > -1) {
+                            _this.onMove(_this.ActivePlayer.UserID, index, [dice.Number]);
+                        }
+                    }
+                }
+
+                console.log('Resurect', index, dice.Number);
+            });
+        }
+
+        if (this.ActivePlayer.KilledStonsCount > 0)
+            return;
+
+        this.PendingDices.forEach(function (dice) {
+            var length = dice.Count;
+            for (var j = 0; j < length; j++) {
+                var fromStone = _this.Stones.filter(function (s, i) {
+                    return (s.UserID == _this.ActivePlayer.UserID) && (s.Count > 0) && _this.checkOneMove(_this.ActivePlayer, dice, i) > -1;
+                })[0];
+                var index = _this.Stones.indexOf(fromStone);
+
+                if (index > -1) {
+                    _this.onMove(_this.ActivePlayer.UserID, index, [dice.Number]);
+                }
+
+                console.log('Move', index, dice.Number);
+            }
+        });
+
+        if (this.PendingDices.length && this.hasEveryStonesInside(this.ActivePlayer)) {
+            var length = 0;
+            this.PendingDices.forEach(function (d) {
+                return length += d.Count;
+            });
+
+            for (var j = 0; j < length; j++) {
+                var fromStone = this.Stones.filter(function (s, i) {
+                    return (s.UserID == _this.ActivePlayer.UserID) && (s.Count > 0) && _this.checkMoveOut(_this.ActivePlayer, i) != undefined;
+                })[0];
+                var index = this.Stones.indexOf(fromStone);
+
+                if (index > -1)
+                    this.onMoveOut(this.ActivePlayer.UserID, index);
+            }
+        }
+    };
+
     GameTable.prototype.checkMoves = function (player, stoneCollection) {
         var _this = this;
         var index = this.Stones.indexOf(stoneCollection);
@@ -358,18 +441,55 @@ var GameTable = (function (_super) {
         return this.PendingDices.filter(function (d) {
             return d.Count > 0;
         }).some(function (dice) {
-            if (player.hasKilledStones()) {
-                var resurectMove = player.IsReversed ? 32 - dice.Number : dice.Number - 1;
-
-                return (_this.Stones[resurectMove].UserID == player.UserID || _this.Stones[resurectMove].Count <= 1);
-            }
-
-            var nextMove = index + (player.IsReversed ? -1 : 1) * dice.Number;
-            if (nextMove < 0 || nextMove > 31)
-                return false;
-
-            return (_this.Stones[nextMove].UserID == player.UserID) || (_this.Stones[nextMove].Count <= 1);
+            return _this.checkOneMove(player, dice, index) > -1;
         });
+    };
+
+    GameTable.prototype.checkOneMove = function (player, dice, index) {
+        if (player.hasKilledStones()) {
+            var resurectMove = player.IsReversed ? 32 - dice.Number : dice.Number - 1;
+
+            return (this.Stones[resurectMove].UserID == player.UserID || this.Stones[resurectMove].Count <= 1) ? resurectMove : -1;
+        }
+
+        var nextMove = index + (player.IsReversed ? -1 : 1) * dice.Number;
+        if (nextMove < 0 || nextMove > 31)
+            return -1;
+
+        if ((this.Stones[nextMove].UserID == player.UserID) || (this.Stones[nextMove].Count <= 1))
+            return nextMove;
+
+        return -1;
+    };
+
+    GameTable.prototype.checkMoveOut = function (player, index) {
+        var filtered = this.Stones.filter(function (s) {
+            return s.UserID == player.UserID && s.Count > 0;
+        });
+
+        var maxLeftStone = filtered[player.IsReversed ? filtered.length - 1 : 0];
+
+        var move = (!player.IsReversed ? 31 - index : index) + 1;
+
+        var usedDice = this.PendingDices.filter(function (d) {
+            return d.Number == move && d.Count > 0;
+        })[0];
+
+        if (!usedDice) {
+            usedDice = this.PendingDices.filter(function (m) {
+                return (m.Number > move) && (m.Count > 0);
+            })[0];
+            var isMaxLeftStone = true;
+        }
+
+        if (!usedDice)
+            return;
+
+        var maxLeftStoneIndex = this.Stones.indexOf(maxLeftStone);
+        if (isMaxLeftStone && maxLeftStoneIndex != index)
+            return;
+
+        return usedDice;
     };
 
     GameTable.prototype.hasEveryStonesInside = function (player) {
@@ -400,6 +520,9 @@ var GameTable = (function (_super) {
 
         return this.Players[index < this.Players.length - 1 ? ++index : 0];
     };
+    GameTable.PLAY_RESERVED_TIME_INTERVAL = 1 * 1000;
+
+    GameTable.PLAY_FOR_ROLL_TIME = 1 * 1000;
     return GameTable;
 })(JP.GameTableBase);
 JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);
