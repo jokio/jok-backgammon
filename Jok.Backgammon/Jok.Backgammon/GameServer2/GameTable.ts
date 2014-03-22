@@ -11,9 +11,9 @@ class Timers {
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
 
-    public static PLAY_RESERVED_TIME_INTERVAL = 1 * 1000;
+    public static PLAY_RESERVED_TIME_INTERVAL = 10 * 1000;
 
-    public static PLAY_FOR_ROLL_TIME = 1 * 1000;
+    public static PLAY_FOR_ROLL_TIME = 15 * 1000;
 
 
     public Stones: StonesCollection[];
@@ -23,7 +23,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     public PendingDices: DiceState[];
 
     public LastMovedStoneIndexes: any[];
-
 
 
 
@@ -198,7 +197,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             }];
         }
 
-        this.next();
+        return this.next();
     }
 
     public onMoveOut(userid: number, index: number) {
@@ -269,6 +268,10 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
+
+        this.send('ActivatePlayer', this.ActivePlayer.UserID);
+
+        return true;
     }
 
     rolling() {
@@ -346,13 +349,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
 
 
-        console.log('');
-        console.log('');
-        console.log('');
-        console.log('');
-        console.log('');
-
-
         // თუ მოკლულია რამე ჯერ ვაცოცხლებთ მათ
         if (this.ActivePlayer.KilledStonsCount > 0) {
             this.PendingDices.forEach(dice => {
@@ -369,30 +365,37 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                         }
                     }
                 }
-
-                console.log('Resurect', index, dice.Number);
             });
         }
 
         if (this.ActivePlayer.KilledStonsCount > 0) return;
 
 
-        // თუ რაიმე გადასვლა შეიძლება რომ გაკეთდეს
-        this.PendingDices.forEach(dice => {
+        for (var k = 0; k < 4; k++) { // იმიტო ვატრიალებთ რომ შეიძლება მანამდე არ შეიძლებოდა გამოსვლა და შემდეგ გაეხსნა შესაძლებლობა
 
-            var length = dice.Count;
-            for (var j = 0; j < length; j++) {
+            var isFinished;
 
-                var fromStone = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkOneMove(this.ActivePlayer, dice, i) > -1)[0];
-                var index = this.Stones.indexOf(fromStone);
+            // თუ რაიმე გადასვლა შეიძლება რომ გაკეთდეს
+            this.PendingDices.forEach(dice => {
 
-                if (index > -1) {
-                    this.onMove(this.ActivePlayer.UserID, index, [dice.Number]);
+                if (!isFinished) {
+                    var length = dice.Count;
+                    for (var j = 0; j < length; j++) {
+
+                        var fromStone = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkOneMove(this.ActivePlayer, dice, i) > -1)[0];
+                        var index = this.Stones.indexOf(fromStone);
+
+                        if (index > -1) {
+                            isFinished = this.onMove(this.ActivePlayer.UserID, index, [dice.Number]);
+                        }
+                    }
                 }
+            });
 
-                console.log('Move', index, dice.Number);
+            if (isFinished) {
+                break;
             }
-        });
+        }
 
         // თუ გამოსასვლელია რამე
         if (this.PendingDices.length && this.hasEveryStonesInside(this.ActivePlayer)) {

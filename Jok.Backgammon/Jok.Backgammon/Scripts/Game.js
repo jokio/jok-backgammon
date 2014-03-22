@@ -150,7 +150,7 @@ var Game = {
     },
 
     UIStoneFinishMoving: function () {
-        try{
+        try {
             var colid = $(this).attr('data-id');
             var fromColID = $(this).attr('data-from-id');
 
@@ -165,7 +165,7 @@ var Game = {
         }
     },
 
-    UIStoneMovingOverBoard: function() {
+    UIStoneMovingOverBoard: function () {
         if (!Game.stoneMovingFromID) return;
 
         Game.refreshMovingStone();
@@ -242,6 +242,7 @@ var Game = {
                     isMove = true;
                 }
 
+
                 this.setState(table.Stones, currentPlayer.IsReversed, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount, isMove);
                 break;
             }
@@ -257,6 +258,7 @@ var Game = {
                 jok.setPlayer(2, null);
 
                 this.isMoveAllowed = false;
+
 
                 this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
                 break;
@@ -276,6 +278,8 @@ var Game = {
                     $('#Player1').find('.wins').html(currentPlayer.WinsCount);
                     $('#Player2').find('.wins').html(opponentPlayer.WinsCount);
                 }
+
+                $('.player .nick').removeClass('active');
 
                 break;
             }
@@ -308,6 +312,14 @@ var Game = {
 
 
         //$('#Board .stone.opponent').css('opacity', 0.7);
+    },
+
+    onActivatePlayer: function (userID) {
+
+        if (!userID) return;
+
+        $('.player .nick').removeClass('active');
+        $('.player[data-userid=' + userID + '] .nick').addClass('active');
     },
 
 

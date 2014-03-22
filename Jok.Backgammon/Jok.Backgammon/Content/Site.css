@@ -45,3 +45,8 @@ body {
 #Notification {
     top: 50px;
 }
+
+.player .nick.active {
+    background: rgba(85, 185, 25, 0.46);
+    border-radius: 4px;
+}
