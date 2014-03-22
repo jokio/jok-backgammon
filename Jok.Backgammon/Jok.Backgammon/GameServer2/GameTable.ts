@@ -8,12 +8,17 @@ class Timers {
     public static MoveWaitingTimeout;
 }
 
+class Commands {
+    public static ActivatePlayer = 'ActivatePlayer';
+    public static TableState = 'TableState';
+    public static RollingResult = 'RollingResult';
+}
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
 
-    public static PLAY_RESERVED_TIME_INTERVAL = 10 * 1000;
+    public static PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
-    public static PLAY_FOR_ROLL_TIME = 15 * 1000;
+    public static PLAY_FOR_ROLL_TIME = 25 * 1000;
 
 
     public Stones: StonesCollection[];
@@ -103,7 +108,9 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         Timers.MoveWaitingTimeout = undefined;
 
 
-        this.send('TableState', this);
+        this.send(Commands.TableState, this);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
+
 
         this.rolling();
     }
@@ -116,11 +123,11 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.Status = JP.TableStatus.Finished;
 
-        this.send('TableState', this);
+        this.send(Commands.TableState, this);
     }
 
     public playersChanged() {
-        this.send('TableState', this);
+        this.send(Commands.TableState, this);
     }
 
 
@@ -248,8 +255,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     // helper
     next() {
 
-        this.send('TableState', this);
-        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, false);
+        this.send(Commands.TableState, this);
+        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, false);
 
 
         // ხომ არ მორჩა?
@@ -269,7 +276,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send('ActivatePlayer', this.ActivePlayer.UserID);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
 
         return true;
     }
@@ -315,7 +322,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             dice.Count = 2;
         }
 
-        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
+        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
 
         // თავიდან აქვს 5 წამი სათამაშოდ, ხოლო შემდეგ რეზერვირებული დროდან 20 წამი.

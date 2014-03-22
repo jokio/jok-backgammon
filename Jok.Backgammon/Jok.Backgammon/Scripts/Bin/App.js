@@ -49,6 +49,15 @@ var Timers = (function () {
     return Timers;
 })();
 
+var Commands = (function () {
+    function Commands() {
+    }
+    Commands.ActivatePlayer = 'ActivatePlayer';
+    Commands.TableState = 'TableState';
+    Commands.RollingResult = 'RollingResult';
+    return Commands;
+})();
+
 var GameTable = (function (_super) {
     __extends(GameTable, _super);
     function GameTable(GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable) {
@@ -122,7 +131,8 @@ var GameTable = (function (_super) {
 
         Timers.MoveWaitingTimeout = undefined;
 
-        this.send('TableState', this);
+        this.send(Commands.TableState, this);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
 
         this.rolling();
     };
@@ -135,11 +145,11 @@ var GameTable = (function (_super) {
 
         this.Status = JP.TableStatus.Finished;
 
-        this.send('TableState', this);
+        this.send(Commands.TableState, this);
     };
 
     GameTable.prototype.playersChanged = function () {
-        this.send('TableState', this);
+        this.send(Commands.TableState, this);
     };
 
     GameTable.prototype.onMove = function (userid, index, moves) {
@@ -270,8 +280,8 @@ var GameTable = (function (_super) {
 
     GameTable.prototype.next = function () {
         var _this = this;
-        this.send('TableState', this);
-        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, false);
+        this.send(Commands.TableState, this);
+        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, false);
 
         if (this.Stones.filter(function (s) {
             return s.UserID == _this.ActivePlayer.UserID && s.Count > 0;
@@ -293,7 +303,7 @@ var GameTable = (function (_super) {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send('ActivatePlayer', this.ActivePlayer.UserID);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
 
         return true;
     };
@@ -339,7 +349,7 @@ var GameTable = (function (_super) {
             dice.Count = 2;
         }
 
-        this.send('RollingResult', this.PendingDices, this.ActivePlayer.UserID, true);
+        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
 
         Timers.MoveWaitingTimeout = setTimeout(function () {
@@ -524,9 +534,9 @@ var GameTable = (function (_super) {
 
         return this.Players[index < this.Players.length - 1 ? ++index : 0];
     };
-    GameTable.PLAY_RESERVED_TIME_INTERVAL = 10 * 1000;
+    GameTable.PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
-    GameTable.PLAY_FOR_ROLL_TIME = 15 * 1000;
+    GameTable.PLAY_FOR_ROLL_TIME = 25 * 1000;
     return GameTable;
 })(JP.GameTableBase);
 JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);

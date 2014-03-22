@@ -144,11 +144,6 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\StartupConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="GameServer\GameCallback.cs" />
-    <Compile Include="GameServer\GameHub.cs" />
-    <Compile Include="GameServer\GameTable.cs" />
-    <Compile Include="GameServer\Models\StonesCollection.cs" />
-    <Compile Include="GameServer\Models\TableStatus.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
