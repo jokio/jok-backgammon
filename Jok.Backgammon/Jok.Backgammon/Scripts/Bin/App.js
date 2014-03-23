@@ -23,7 +23,22 @@ var GamePlayer = (function (_super) {
         this.IsReversed = false;
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;
-        this.ReservedTime = 6 * 60 * 1000;
+        this.ReservedTime = 0;
+        6 * 60 * 1000;
+    };
+
+    GamePlayer.prototype.removeReserveTime = function () {
+        console.log(this.UserID, this.ReservedTime, this.WaitingStartTime, Date.now() - this.WaitingStartTime);
+
+        if (!this.WaitingStartTime)
+            return;
+
+        var time = Date.now() - this.WaitingStartTime;
+        if (time < 0)
+            return;
+
+        this.ReservedTime -= time > 0 ? time : 0;
+        this.WaitingStartTime = undefined;
     };
     return GamePlayer;
 })(JP.GamePlayerBase);
@@ -80,6 +95,8 @@ var GameTable = (function (_super) {
         for (var i = 0; i < 32; i++) {
             this.Stones.push(new StonesCollection());
         }
+
+        this.ID = require('node-uuid').v4();
     }
     GameTable.prototype.start = function () {
         if (this.Players.length != 2)
@@ -298,7 +315,7 @@ var GameTable = (function (_super) {
         }
 
         clearTimeout(Timers.MoveWaitingTimeout);
-        this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
+        this.ActivePlayer.removeReserveTime();
 
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
@@ -352,12 +369,14 @@ var GameTable = (function (_super) {
         this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
         this.ActivePlayer.send('MoveRequest');
 
+        clearTimeout(Timers.MoveWaitingTimeout);
         Timers.MoveWaitingTimeout = setTimeout(function () {
             var interval = GameTable.PLAY_RESERVED_TIME_INTERVAL;
             if (interval > _this.ActivePlayer.ReservedTime)
                 interval = _this.ActivePlayer.ReservedTime;
 
             _this.ActivePlayer.WaitingStartTime = Date.now();
+            clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
         }, GameTable.PLAY_FOR_ROLL_TIME);
 
@@ -380,7 +399,7 @@ var GameTable = (function (_super) {
 
     GameTable.prototype.makeBotMove = function () {
         var _this = this;
-        this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
+        this.ActivePlayer.removeReserveTime();
 
         if (this.ActivePlayer.KilledStonsCount > 0) {
             this.PendingDices.forEach(function (dice) {
@@ -536,7 +555,7 @@ var GameTable = (function (_super) {
     };
     GameTable.PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
-    GameTable.PLAY_FOR_ROLL_TIME = 25 * 1000;
+    GameTable.PLAY_FOR_ROLL_TIME = 20 * 1000;
     return GameTable;
 })(JP.GameTableBase);
 JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);

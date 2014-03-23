@@ -50,3 +50,19 @@ body {
     background: rgba(85, 185, 25, 0.46);
     border-radius: 4px;
 }
+
+
+#Game .center_title {
+    position: fixed;
+    left: 50%;
+    top: 60px;
+    margin-left: -80px;
+    opacity: .3;
+    color: white;
+    display: none;
+}
+
+#Game .center_title .description {
+    margin-top: 3px;
+    margin-left: 12px;
+}

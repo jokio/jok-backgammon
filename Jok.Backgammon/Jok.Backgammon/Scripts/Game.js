@@ -199,6 +199,8 @@ var Game = {
         $('#Notification .item').hide();
         $('#Notification .item.quit span').html('');
         $('#Notification .item.quit').show();
+
+        $('#Game .center_title').hide();
     },
 
     onUserAuthenticated: function (userid) {
@@ -209,6 +211,10 @@ var Game = {
 
         this.isMoveAllowed = false;
         this.clearStoneHighlights();
+
+        $('#Game .center_title').hide();
+
+        jok.chat.join(table.ID);
 
         switch (table.Status) {
             case 0: {
@@ -242,6 +248,7 @@ var Game = {
                     isMove = true;
                 }
 
+                $('#Game .center_title').show();
 
                 this.setState(table.Stones, currentPlayer.IsReversed, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount, isMove);
                 break;

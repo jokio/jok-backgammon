@@ -18,8 +18,10 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
     public static PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
-    public static PLAY_FOR_ROLL_TIME = 25 * 1000;
+    public static PLAY_FOR_ROLL_TIME = 20 * 1000;
 
+
+    public ID: string;
 
     public Stones: StonesCollection[];
 
@@ -44,6 +46,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         for (var i = 0; i < 32; i++) {
             this.Stones.push(new StonesCollection());
         }
+
+        this.ID = require('node-uuid').v4();
     }
 
 
@@ -271,7 +275,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         }
 
         clearTimeout(Timers.MoveWaitingTimeout);
-        this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
+        this.ActivePlayer.removeReserveTime();
 
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
@@ -326,6 +330,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.ActivePlayer.send('MoveRequest');
 
         // თავიდან აქვს 5 წამი სათამაშოდ, ხოლო შემდეგ რეზერვირებული დროდან 20 წამი.
+        clearTimeout(Timers.MoveWaitingTimeout);
         Timers.MoveWaitingTimeout = setTimeout(() => {
 
             var interval = GameTable.PLAY_RESERVED_TIME_INTERVAL;
@@ -333,6 +338,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                 interval = this.ActivePlayer.ReservedTime;
 
             this.ActivePlayer.WaitingStartTime = Date.now();
+            clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(this.makeBotMove.bind(this), interval);
 
         }, GameTable.PLAY_FOR_ROLL_TIME);
@@ -353,7 +359,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
     makeBotMove() {
 
-        this.ActivePlayer.ReservedTime -= Date.now() - this.ActivePlayer.WaitingStartTime;
+        this.ActivePlayer.removeReserveTime();
 
 
         // თუ მოკლულია რამე ჯერ ვაცოცხლებთ მათ

@@ -47,6 +47,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Jok.GameEngine">
+      <HintPath>..\packages\Jok.GameEngine.1.0.14\lib\Jok.GameEngine.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AspNet.SignalR.Core">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.0.2\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
     </Reference>
@@ -167,6 +170,7 @@
     <Content Include="Images\dice_bg.png" />
     <Content Include="Images\dice_bg2.png" />
     <Content Include="Images\preview.png" />
+    <Content Include="Images\rowena_title.png" />
     <Content Include="Images\webplay.png" />
     <Content Include="Scripts\Bin\App.js" />
     <Content Include="Scripts\bootstrap.js" />
