@@ -18,13 +18,6 @@ namespace Jok.Backgammon.Controllers
 
         public ActionResult Play(string id, string sid, string source)
         {
-            // sid რომ არ გამოჩნდეს url-ში
-            if (!String.IsNullOrEmpty(sid))
-            {
-                return RedirectToAction("Play", new { id = id, source = source, debug = Request.Params["debug"] });
-            }
-
-
             var AuthorizationUrl = ConfigurationManager.AppSettings["LoginUrl"] + "?returnUrl=" + Request.Url;
             var ExitUrl = ConfigurationManager.AppSettings["ExitUrl"];
 
@@ -48,8 +41,6 @@ namespace Jok.Backgammon.Controllers
                 sid = Request.Cookies["sid"] == null ? "" : Request.Cookies["sid"].Value;
             }
 
-
-
             if (String.IsNullOrEmpty(sid))
                 return Redirect(AuthorizationUrl);
 
@@ -63,6 +54,13 @@ namespace Jok.Backgammon.Controllers
                 Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo(userInfo.CultureName);
                 ViewBag.Language = userInfo.CultureName.Replace('-', '_');
             }
+
+
+            //// sid რომ არ გამოჩნდეს url-ში
+            //if (!String.IsNullOrEmpty(sid))
+            //{
+            //    return RedirectToAction("Play", new { id = id, source = source, debug = Request.Params["debug"] });
+            //}
 
 
             ViewBag.ID = id;
