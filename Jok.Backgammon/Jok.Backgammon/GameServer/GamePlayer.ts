@@ -31,11 +31,10 @@ class GamePlayer extends JP.GamePlayerBase {
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;
         this.ReservedTime = 0; 6 * 60 * 1000; // 6 წუთი რეზერვი
+        this.HasAnyMoveMade = true;
     }
 
     public removeReserveTime() {
-
-        console.log(this.UserID, this.ReservedTime, this.WaitingStartTime, Date.now() - this.WaitingStartTime);
 
         if (!this.WaitingStartTime) return;
 
@@ -44,7 +43,5 @@ class GamePlayer extends JP.GamePlayerBase {
 
         this.ReservedTime -= time > 0 ? time : 0;
         this.WaitingStartTime = undefined;
-
-        //console.log(this.UserID, this.ReservedTime, time);
     }
 }

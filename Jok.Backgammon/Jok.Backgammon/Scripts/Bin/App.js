@@ -25,11 +25,10 @@ var GamePlayer = (function (_super) {
         this.WaitingStartTime = 0;
         this.ReservedTime = 0;
         6 * 60 * 1000;
+        this.HasAnyMoveMade = true;
     };
 
     GamePlayer.prototype.removeReserveTime = function () {
-        console.log(this.UserID, this.ReservedTime, this.WaitingStartTime, Date.now() - this.WaitingStartTime);
-
         if (!this.WaitingStartTime)
             return;
 

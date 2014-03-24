@@ -27,7 +27,9 @@ declare module JP {
     }
 
     export class GamePlayerBase {
-        
+
+        HasAnyMoveMade: boolean;
+
         constructor(UserID: number, IPAddress: string, IsVIP: boolean, IsOnline: boolean);
 
         send(command: string, ...params: any[]);

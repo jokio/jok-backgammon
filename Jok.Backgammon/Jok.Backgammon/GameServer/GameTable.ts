@@ -70,6 +70,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             s.Count = 0;
         });
 
+
         this.LastMovedStoneIndexes = [];
 
         this.Stones[0].UserID = this.ActivePlayer.UserID;
@@ -95,6 +96,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.Stones[31].UserID = opponent.UserID;
         this.Stones[31].Count = 3;
+
+
 
         //for (var i = 0; i < 8; i++) {
         //    this.Stones[i].UserID = opponent.UserID;
