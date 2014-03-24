@@ -99,7 +99,6 @@
     position: absolute;
     display: none;
     z-index: 1;
-
 }
 
 #Board .items_top .stone.near {
@@ -253,6 +252,8 @@
     background-size: 74px;
     padding-top: 23px;
     padding-right: 14px;
+    box-shadow: 0 0 0 white;
+    border: 0px;
 }
 
 #Board .dices .dice.disabled {
