@@ -586,5 +586,7 @@ JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);
 
 process.on('uncaughtException', function (err) {
     JP.Helper.SaveErrorLog(err);
+
+    JP.Helper.SendMail('status-update@jok.io', 'Backgammon - Exception found', err.stack);
 });
 //# sourceMappingURL=App.js.map
