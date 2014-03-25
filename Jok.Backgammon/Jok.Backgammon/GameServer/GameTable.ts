@@ -67,9 +67,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             player.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
             player.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
 
-            if (player == this.ActivePlayer) {
-                this.ActivePlayer.send(Commands.MoveRequest);
-            }
+            this.ActivePlayer.send(Commands.MoveRequest);
         }
     }
 
