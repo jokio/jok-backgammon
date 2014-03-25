@@ -82,7 +82,10 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
             clearTimeout(Timers.MoveWaitingTimeout);
             this.Players.splice(0, this.Players.length);
+            return;
         }
+
+        this.ActivePlayer.send(Commands.MoveRequest);
     }
 
     public start() {
@@ -375,6 +378,9 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             if (interval > this.ActivePlayer.ReservedTime)
                 interval = this.ActivePlayer.ReservedTime;
 
+            if (!this.ActivePlayer.IsOnline)
+                interval = 0;
+
             this.ActivePlayer.WaitingStartTime = Date.now();
             clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(this.makeBotMove.bind(this), interval);
@@ -537,21 +543,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
             return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
         });
-    }
-
-    getNextPlayer(player?: GamePlayer): GamePlayer {
-
-        if (this.Players.length <= 1) return;
-
-        if (!player)
-            player = this.ActivePlayer;
-
-        if (!player) return;
-
-
-        var index = this.Players.indexOf(player);
-
-        return this.Players[index < this.Players.length - 1 ? ++index : 0];
     }
 }
 

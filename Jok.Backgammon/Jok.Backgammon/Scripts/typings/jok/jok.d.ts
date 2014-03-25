@@ -24,6 +24,8 @@ declare module JP {
 
 
         send(command: string, ...params: any[]);
+
+        getNextPlayer(player?: TGamePlayer): TGamePlayer;
     }
 
     export class GamePlayerBase {

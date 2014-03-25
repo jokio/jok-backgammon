@@ -124,7 +124,10 @@ var GameTable = (function (_super) {
         }).length == 0) {
             clearTimeout(Timers.MoveWaitingTimeout);
             this.Players.splice(0, this.Players.length);
+            return;
         }
+
+        this.ActivePlayer.send(Commands.MoveRequest);
     };
 
     GameTable.prototype.start = function () {
@@ -406,6 +409,9 @@ var GameTable = (function (_super) {
             if (interval > _this.ActivePlayer.ReservedTime)
                 interval = _this.ActivePlayer.ReservedTime;
 
+            if (!_this.ActivePlayer.IsOnline)
+                interval = 0;
+
             _this.ActivePlayer.WaitingStartTime = Date.now();
             clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
@@ -572,21 +578,6 @@ var GameTable = (function (_super) {
 
             return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
         });
-    };
-
-    GameTable.prototype.getNextPlayer = function (player) {
-        if (this.Players.length <= 1)
-            return;
-
-        if (!player)
-            player = this.ActivePlayer;
-
-        if (!player)
-            return;
-
-        var index = this.Players.indexOf(player);
-
-        return this.Players[index < this.Players.length - 1 ? ++index : 0];
     };
     GameTable.PLAY_RESERVED_TIME_INTERVAL = 15 * 1000;
 
