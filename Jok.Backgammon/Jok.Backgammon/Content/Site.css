@@ -46,10 +46,27 @@ body {
     top: 50px;
 }
 
-.player .nick.active {
+.player .nick {
+    position: relative;
+    z-index: 20;
+}
+
+#Player1 .progresbar, #Player2 .progresbar {
+    width: 0px;
+    height: 32px;
+    position: absolute;
+    bottom: -7px;
+    left: 0px;
+    text-align: left;
     background: rgba(85, 185, 25, 0.46);
     border-radius: 4px;
+    z-index: 19;
 }
+
+#Player1 .progresbar.active, #Player2 .progresbar.active {
+    display: block;
+}
+
 
 
 #Game .center_title {

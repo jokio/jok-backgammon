@@ -21,6 +21,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
     public static PLAY_FOR_ROLL_TIME = 20 * 1000;
 
+    public static PLAY_FOR_ROLL_TIME_OFFLINE = 3 * 1000;
+
 
     public ID: string;
 
@@ -72,10 +74,11 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
     public leave(userid: number) {
+
         super.leave(userid);
 
         // თუ ყველა გავიდა Timer-ი გასათიშია თორემ აგრძელებს თამაშს კომპიუტერი
-        if (this.Players.filter(p=> p.IsOnline).length == 0) {
+        if (this.Players.filter(p => p.IsOnline).length == 0) {
             clearTimeout(Timers.MoveWaitingTimeout);
         }
     }
@@ -293,7 +296,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
 
         // ხომ არ მორჩა?
-        if (this.Stones.filter(s=> s.UserID == this.ActivePlayer.UserID && s.Count > 0).length == 0) {
+        if (this.Stones.filter(s => s.UserID == this.ActivePlayer.UserID && s.Count > 0).length == 0) {
             this.finish();
             return;
         }
@@ -309,7 +312,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
 
         return true;
     }
@@ -370,7 +373,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(this.makeBotMove.bind(this), interval);
 
-        }, GameTable.PLAY_FOR_ROLL_TIME);
+        }, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
 
 
         if (!this.hasAnyMoves()) {

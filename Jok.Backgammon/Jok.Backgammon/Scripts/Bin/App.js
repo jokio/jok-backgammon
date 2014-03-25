@@ -349,7 +349,7 @@ var GameTable = (function (_super) {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
 
         return true;
     };
@@ -407,7 +407,7 @@ var GameTable = (function (_super) {
             _this.ActivePlayer.WaitingStartTime = Date.now();
             clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
-        }, GameTable.PLAY_FOR_ROLL_TIME);
+        }, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
 
         if (!this.hasAnyMoves()) {
             setTimeout(this.next.bind(this), 2000);
@@ -585,6 +585,8 @@ var GameTable = (function (_super) {
     GameTable.PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
     GameTable.PLAY_FOR_ROLL_TIME = 20 * 1000;
+
+    GameTable.PLAY_FOR_ROLL_TIME_OFFLINE = 3 * 1000;
     return GameTable;
 })(JP.GameTableBase);
 JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);

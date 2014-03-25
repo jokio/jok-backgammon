@@ -327,12 +327,11 @@ var Game = {
         //$('#Board .stone.opponent').css('opacity', 0.7);
     },
 
-    onActivatePlayer: function (userID) {
+    onActivatePlayer: function (userID, period) {
 
         if (!userID) return;
 
-        $('.player .nick').removeClass('active');
-        $('.player[data-userid=' + userID + '] .nick').addClass('active');
+        this.startWaitingAnimation(userID, period);
     },
 
 
@@ -774,6 +773,25 @@ var Game = {
         dragStone.css('left', event.pageX - offset.left - 20 + 'px');
         dragStone.css('top', event.pageY - offset.top - 20 + 'px');
     },
+
+    startWaitingAnimation: function (userID, period) {
+        this.stopWaitingAnimation();
+
+        var userObj = $('.player[data-userid=' + userID + '] .progresbar');
+        if (!userObj.length) return;
+
+        userObj.addClass('active');
+        userObj.css('width', '120px');
+        userObj.animate({ width: 0 }, period);
+    },
+
+
+    stopWaitingAnimation: function () {
+        $('.player .progresbar').width(0);
+        $('.player .progresbar').removeClass('active');
+        $('.player .progresbar').stop(true);
+    },
+
 };
 
 
@@ -786,7 +804,6 @@ game.init = function () {
 
     $('#Player1').append('<div class="added_rating">+23.33 Rating</div>');
     $('#Player2').append('<div class="offline">Offline</div>');
-
 }
 
 Game.init();
