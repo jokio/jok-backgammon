@@ -327,11 +327,11 @@ var Game = {
         //$('#Board .stone.opponent').css('opacity', 0.7);
     },
 
-    onActivatePlayer: function (userID, period) {
+    onActivatePlayer: function (userID, period, additionalPeriod) {
 
         if (!userID) return;
 
-        this.startWaitingAnimation(userID, period);
+        this.startWaitingAnimation(userID, period, additionalPeriod);
     },
 
 
@@ -774,15 +774,22 @@ var Game = {
         dragStone.css('top', event.pageY - offset.top - 20 + 'px');
     },
 
-    startWaitingAnimation: function (userID, period) {
+    startWaitingAnimation: function (userID, period, additionalPeriod) {
         this.stopWaitingAnimation();
 
         var userObj = $('.player[data-userid=' + userID + '] .progresbar');
         if (!userObj.length) return;
 
+        userObj.removeClass('additional');
         userObj.addClass('active');
         userObj.css('width', '120px');
-        userObj.animate({ width: 0 }, period);
+        userObj.animate({ width: 0 }, period, function () {
+            if (!additionalPeriod) return;
+
+            userObj.addClass('additional');
+            userObj.css('width', '120px');
+            userObj.animate({ width: 0 }, additionalPeriod);
+        });
     },
 
 

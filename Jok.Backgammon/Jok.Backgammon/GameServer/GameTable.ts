@@ -17,7 +17,7 @@ class Commands {
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
 
-    public static PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
+    public static PLAY_RESERVED_TIME_INTERVAL = 15 * 1000;
 
     public static PLAY_FOR_ROLL_TIME = 20 * 1000;
 
@@ -79,7 +79,9 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         // თუ ყველა გავიდა Timer-ი გასათიშია თორემ აგრძელებს თამაშს კომპიუტერი
         if (this.Players.filter(p => p.IsOnline).length == 0) {
+
             clearTimeout(Timers.MoveWaitingTimeout);
+            this.Players.splice(0, this.Players.length);
         }
     }
 
@@ -146,7 +148,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
 
         this.send(Commands.TableState, this);
-        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, GameTable.PLAY_FOR_ROLL_TIME, GameTable.PLAY_RESERVED_TIME_INTERVAL);
 
         this.rolling();
     }
@@ -281,7 +283,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         if (this.Status != JP.TableStatus.Finished) return;
 
-        if (this.Players.length != 2) return;
+        if (this.Players.filter(p => p.IsOnline).length != 2) return;
 
         this.start();
     }
@@ -312,7 +314,10 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
+        this.send(Commands.ActivatePlayer,
+            this.ActivePlayer.UserID,
+            this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE,
+            this.ActivePlayer.IsOnline ? GameTable.PLAY_RESERVED_TIME_INTERVAL : 0);
 
         return true;
     }
@@ -456,6 +461,11 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                 if (index > -1)
                     this.onMoveOut(this.ActivePlayer.UserID, index);
             }
+        }
+
+        // თუ დარჩა რაიმე სათამაშო და არა აქვს სვლა შემდეგზე გადასვლა
+        if (this.PendingDices.length && !this.hasAnyMoves()) {
+            this.next();
         }
     }
 
