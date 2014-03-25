@@ -278,12 +278,22 @@ var Game = {
             }
 
             case 3: {
+
+                this.stopWaitingAnimation();
+
                 var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
                 var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
 
                 $('#Notification .item').hide();
-                $('#Notification .item.table_finish_winner span').html(jok.players[table.LastWinnerPlayer.UserID].nick);
-                $('#Notification .item.table_finish_winner').show();
+
+                if (opponentPlayer) {
+                    $('#Notification .item.table_finish_winner span').html(jok.players[table.LastWinnerPlayer.UserID].nick);
+                    $('#Notification .item.table_finish_winner').show();
+                }
+                else {
+                    $('#Notification .item.table_finish_winner2 span').html(jok.players[table.LastWinnerPlayer.UserID].nick);
+                    $('#Notification .item.table_finish_winner2').show();
+                }
 
                 this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
 

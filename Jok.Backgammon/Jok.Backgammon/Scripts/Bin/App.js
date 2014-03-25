@@ -23,8 +23,7 @@ var GamePlayer = (function (_super) {
         this.IsReversed = false;
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;
-        this.ReservedTime = 0;
-        6 * 60 * 1000;
+        this.ReservedTime = 6 * 60 * 1000;
         this.HasAnyMoveMade = true;
     };
 
@@ -179,7 +178,7 @@ var GameTable = (function (_super) {
         Timers.MoveWaitingTimeout = undefined;
 
         this.send(Commands.TableState, this);
-        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, GameTable.PLAY_FOR_ROLL_TIME, GameTable.PLAY_RESERVED_TIME_INTERVAL);
 
         this.rolling();
     };
@@ -494,6 +493,10 @@ var GameTable = (function (_super) {
                     this.onMoveOut(this.ActivePlayer.UserID, index);
             }
         }
+
+        if (this.PendingDices.length && !this.hasAnyMoves()) {
+            this.next();
+        }
     };
 
     GameTable.prototype.checkMoves = function (player, stoneCollection) {
@@ -587,7 +590,7 @@ var GameTable = (function (_super) {
     };
     GameTable.PLAY_RESERVED_TIME_INTERVAL = 15 * 1000;
 
-    GameTable.PLAY_FOR_ROLL_TIME = 20 * 1000;
+    GameTable.PLAY_FOR_ROLL_TIME = 15 * 1000;
 
     GameTable.PLAY_FOR_ROLL_TIME_OFFLINE = 3 * 1000;
     return GameTable;

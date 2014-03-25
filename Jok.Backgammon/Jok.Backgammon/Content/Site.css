@@ -63,6 +63,10 @@ body {
     z-index: 19;
 }
 
+#Player1 .progresbar.additional, #Player2 .progresbar.additional {
+    background: rgba(208, 149, 26, 0.46);
+}
+
 #Player1 .progresbar.active, #Player2 .progresbar.active {
     display: block;
 }

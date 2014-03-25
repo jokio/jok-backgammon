@@ -19,7 +19,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
     public static PLAY_RESERVED_TIME_INTERVAL = 15 * 1000;
 
-    public static PLAY_FOR_ROLL_TIME = 20 * 1000;
+    public static PLAY_FOR_ROLL_TIME = 15 * 1000;
 
     public static PLAY_FOR_ROLL_TIME_OFFLINE = 3 * 1000;
 
@@ -104,6 +104,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
 
         this.LastMovedStoneIndexes = [];
+
 
         this.Stones[0].UserID = this.ActivePlayer.UserID;
         this.Stones[0].Count = 3;
