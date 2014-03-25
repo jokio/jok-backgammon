@@ -62,6 +62,11 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         if (this.Status == JP.TableStatus.Started) {
 
+            player.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
+
+            if (player == this.ActivePlayer) {
+                this.ActivePlayer.send(Commands.MoveRequest);
+            }
         }
 
     }
@@ -157,7 +162,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
     public playersChanged() {
-        console.log('TableStatus', this.Status);
         this.send(Commands.TableState, this);
     }
 
@@ -271,7 +275,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
     public onPlayAgain(userid: number) {
-        var player = this.Players.filter(p=> p.UserID == userid)[0];
+        var player = this.Players.filter(p => p.UserID == userid)[0];
         if (!player) return;
 
         if (this.Status != JP.TableStatus.Finished) return;
@@ -297,7 +301,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         }
 
         if (this.PendingDices.filter(d => d.Count > 0).length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
-            this.ActivePlayer.send('MoveRequest');
+            this.ActivePlayer.send(Commands.MoveRequest);
             return;
         }
 

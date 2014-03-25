@@ -236,7 +236,7 @@ var Game = {
                 var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
                 var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
 
-                jok.setPlayer(1, jok.currentUserID);
+                jok.setPlayer(1, currentPlayer.UserID);
                 jok.setPlayer(2, opponentPlayer.UserID);
 
                 var isMove;
@@ -263,7 +263,7 @@ var Game = {
                 var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
                 var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
 
-                jok.setPlayer(1, jok.currentUserID);
+                jok.setPlayer(1, currentPlayer.UserID);
                 jok.setPlayer(2, opponentPlayer.UserID);
 
                 this.isMoveAllowed = false;

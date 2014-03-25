@@ -108,6 +108,11 @@ var GameTable = (function (_super) {
             return;
 
         if (this.Status == JP.TableStatus.Started) {
+            player.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
+
+            if (player == this.ActivePlayer) {
+                this.ActivePlayer.send(Commands.MoveRequest);
+            }
         }
     };
 
@@ -189,7 +194,6 @@ var GameTable = (function (_super) {
     };
 
     GameTable.prototype.playersChanged = function () {
-        console.log('TableStatus', this.Status);
         this.send(Commands.TableState, this);
     };
 
@@ -334,7 +338,7 @@ var GameTable = (function (_super) {
         if (this.PendingDices.filter(function (d) {
             return d.Count > 0;
         }).length > 0 && (this.hasAnyMoves() || this.hasEveryStonesInside(this.ActivePlayer))) {
-            this.ActivePlayer.send('MoveRequest');
+            this.ActivePlayer.send(Commands.MoveRequest);
             return;
         }
 
