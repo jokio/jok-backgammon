@@ -224,7 +224,10 @@ var Game = {
                 jok.setPlayer(2, null);
 
                 $('#Notification .item').hide();
-                $('#Notification .item.waiting_opponent').show();
+                if (table.Channel)
+                    $('#Notification .item.share_friends').show();
+                else
+                    $('#Notification .item.waiting_opponent').show();
 
                 this.setState(table.Stones);
                 break;

@@ -109,6 +109,7 @@ var GameTable = (function (_super) {
 
         if (this.Status == JP.TableStatus.Started) {
             player.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
+            player.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
 
             if (player == this.ActivePlayer) {
                 this.ActivePlayer.send(Commands.MoveRequest);
@@ -119,11 +120,11 @@ var GameTable = (function (_super) {
     GameTable.prototype.leave = function (userid) {
         _super.prototype.leave.call(this, userid);
 
-        var player = this.Players.filter(function (p) {
-            return p.UserID == userid;
-        })[0];
-        if (!player)
-            return;
+        if (this.Players.filter(function (p) {
+            return p.IsOnline;
+        }).length == 0) {
+            clearTimeout(Timers.MoveWaitingTimeout);
+        }
     };
 
     GameTable.prototype.start = function () {

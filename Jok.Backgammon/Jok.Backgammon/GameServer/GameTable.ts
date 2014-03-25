@@ -34,7 +34,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
 
 
-
     constructor(private GamePlayerClass, public Channel = '', public Mode = 0, public MaxPlayersCount = 2, public IsVIPTable = false) {
 
         super(GamePlayerClass, Channel, Mode, MaxPlayersCount, IsVIPTable);
@@ -52,6 +51,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
 
+
     // overrides
     public join(user, ipaddress: string, channel: string, mode?: number) {
 
@@ -63,22 +63,21 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         if (this.Status == JP.TableStatus.Started) {
 
             player.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
+            player.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
 
             if (player == this.ActivePlayer) {
                 this.ActivePlayer.send(Commands.MoveRequest);
             }
         }
-
     }
 
     public leave(userid: number) {
-
         super.leave(userid);
 
-        var player = this.Players.filter(p=> p.UserID == userid)[0];
-        if (!player) return;
-
-
+        // თუ ყველა გავიდა Timer-ი გასათიშია თორემ აგრძელებს თამაშს კომპიუტერი
+        if (this.Players.filter(p=> p.IsOnline).length == 0) {
+            clearTimeout(Timers.MoveWaitingTimeout);
+        }
     }
 
     public start() {
@@ -145,7 +144,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.send(Commands.TableState, this);
         this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID);
-
 
         this.rolling();
     }
