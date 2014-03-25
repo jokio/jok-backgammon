@@ -48,6 +48,8 @@ declare module JP {
         static HttpGet(url: string, cb, parseJson?: boolean);
 
         static ChannelSockets(channel: string): any[];
+
+        static SaveErrorLog(err);
     }
 
     export class Server {

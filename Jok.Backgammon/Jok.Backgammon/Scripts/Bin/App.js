@@ -69,6 +69,7 @@ var Commands = (function () {
     Commands.ActivatePlayer = 'ActivatePlayer';
     Commands.TableState = 'TableState';
     Commands.RollingResult = 'RollingResult';
+    Commands.MoveRequest = 'MoveRequest';
     return Commands;
 })();
 
@@ -97,15 +98,38 @@ var GameTable = (function (_super) {
 
         this.ID = require('node-uuid').v4();
     }
+    GameTable.prototype.join = function (user, ipaddress, channel, mode) {
+        _super.prototype.join.call(this, user, ipaddress, channel, mode);
+
+        var player = this.Players.filter(function (p) {
+            return p.UserID == user.UserID;
+        })[0];
+        if (!player)
+            return;
+
+        if (this.Status == JP.TableStatus.Started) {
+        }
+    };
+
+    GameTable.prototype.leave = function (userid) {
+        _super.prototype.leave.call(this, userid);
+
+        var player = this.Players.filter(function (p) {
+            return p.UserID == userid;
+        })[0];
+        if (!player)
+            return;
+    };
+
     GameTable.prototype.start = function () {
         if (this.Players.length != 2)
             return;
 
         this.Status = JP.TableStatus.Started;
+
         this.Stones.forEach(function (s) {
             return new StonesCollection();
         });
-
         this.Players.forEach(function (p) {
             return p.init();
         });
@@ -165,6 +189,7 @@ var GameTable = (function (_super) {
     };
 
     GameTable.prototype.playersChanged = function () {
+        console.log('TableStatus', this.Status);
         this.send(Commands.TableState, this);
     };
 
@@ -366,7 +391,7 @@ var GameTable = (function (_super) {
         }
 
         this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
-        this.ActivePlayer.send('MoveRequest');
+        this.ActivePlayer.send(Commands.MoveRequest);
 
         clearTimeout(Timers.MoveWaitingTimeout);
         Timers.MoveWaitingTimeout = setTimeout(function () {
@@ -558,4 +583,8 @@ var GameTable = (function (_super) {
     return GameTable;
 })(JP.GameTableBase);
 JP.Server.Start(process.env.PORT || 9003, GameTable, GamePlayer);
+
+process.on('uncaughtException', function (err) {
+    JP.Helper.SaveErrorLog(err);
+});
 //# sourceMappingURL=App.js.map

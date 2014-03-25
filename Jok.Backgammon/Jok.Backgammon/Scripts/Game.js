@@ -213,6 +213,8 @@ var Game = {
         this.clearStoneHighlights();
 
         $('#Game .center_title').hide();
+        $('#Player2 .offline').hide();
+
 
         jok.chat.join(table.ID);
 
@@ -256,16 +258,17 @@ var Game = {
 
             case 2: {
                 $('#Notification .item').hide();
-                $('#Notification .item.table_leave_winner').show();
+                $('#Notification .item.opponent_offline').show();
 
                 var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
                 var opponentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[1] : table.Players[0];
 
                 jok.setPlayer(1, jok.currentUserID);
-                jok.setPlayer(2, null);
+                jok.setPlayer(2, opponentPlayer.UserID);
 
                 this.isMoveAllowed = false;
 
+                $('#Player2 .offline').show();
 
                 this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
                 break;
@@ -769,5 +772,18 @@ var Game = {
         dragStone.css('top', event.pageY - offset.top - 20 + 'px');
     },
 };
+
+
+game.init = function () {
+
+    $('#Notification').append('<div class="item waiting_opponent_tournament"><br />Welcome<br/>Waiting for opponent...<br /><br /></div>');
+    $('#Notification').append('<div class="item opponent_offline"><br />Opponent is offline, Keep playing<br /><br /></div>');
+    $('#Notification').append('<div class="item table_finish_winner2">Winner: <span>WINNER NAME GOES HERE</span><br /><br /><button class="button brown new_game">Play on another table</button></div>');
+
+
+    $('#Player1').append('<div class="added_rating">+23.33 Rating</div>');
+    $('#Player2').append('<div class="offline">Offline</div>');
+
+}
 
 Game.init();

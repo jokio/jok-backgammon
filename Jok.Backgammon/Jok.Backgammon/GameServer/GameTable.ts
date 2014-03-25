@@ -12,6 +12,7 @@ class Commands {
     public static ActivatePlayer = 'ActivatePlayer';
     public static TableState = 'TableState';
     public static RollingResult = 'RollingResult';
+    public static MoveRequest = 'MoveRequest';
 }
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
@@ -51,14 +52,36 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
 
-
     // overrides
+    public join(user, ipaddress: string, channel: string, mode?: number) {
+
+        super.join(user, ipaddress, channel, mode);
+
+        var player = this.Players.filter(p => p.UserID == user.UserID)[0];
+        if (!player) return;
+
+        if (this.Status == JP.TableStatus.Started) {
+
+        }
+
+    }
+
+    public leave(userid: number) {
+
+        super.leave(userid);
+
+        var player = this.Players.filter(p=> p.UserID == userid)[0];
+        if (!player) return;
+
+
+    }
+
     public start() {
         if (this.Players.length != 2) return;
 
         this.Status = JP.TableStatus.Started;
-        this.Stones.forEach(s => new StonesCollection());
 
+        this.Stones.forEach(s => new StonesCollection());
         this.Players.forEach(p => p.init());
 
         this.ActivePlayer = this.Players[0];
@@ -134,6 +157,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
     public playersChanged() {
+        console.log('TableStatus', this.Status);
         this.send(Commands.TableState, this);
     }
 
@@ -330,7 +354,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         }
 
         this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
-        this.ActivePlayer.send('MoveRequest');
+        this.ActivePlayer.send(Commands.MoveRequest);
 
         // თავიდან აქვს 5 წამი სათამაშოდ, ხოლო შემდეგ რეზერვირებული დროდან 20 წამი.
         clearTimeout(Timers.MoveWaitingTimeout);

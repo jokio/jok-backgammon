@@ -66,3 +66,29 @@ body {
     margin-top: 3px;
     margin-left: 12px;
 }
+
+
+#Player2 .offline {
+    display: none;
+    position: absolute;
+    padding: 1px 4px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 3px;
+    border: 1px solid #B4B4B4;
+    top: 60px;
+    color: #FFF;
+    right: 50px;
+}
+
+#Player1 .added_rating {
+    color: #72E22F;
+    background: rgba(0, 0, 0, 0.66);
+    padding: 1px 5px;
+    border-radius: 3px;
+    position: absolute;
+    top: 146px;
+    border: 1px solid rgba(255, 255, 255, 0.53);
+    left: 0px;
+    right: 0px;
+    display: none;
+}
