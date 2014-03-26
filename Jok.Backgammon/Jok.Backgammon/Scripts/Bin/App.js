@@ -441,9 +441,10 @@ var GameTable = (function (_super) {
                 var length = dice.Count;
                 for (var j = 0; j < length; j++) {
                     if (_this.ActivePlayer.KilledStonsCount > 0) {
-                        var fromStone = _this.Stones.filter(function (s, i) {
+                        var filteredStones = _this.Stones.filter(function (s, i) {
                             return (s.UserID == _this.ActivePlayer.UserID) && (s.Count > 0) && _this.checkOneMove(_this.ActivePlayer, dice, i) > -1;
-                        })[0];
+                        });
+                        var fromStone = filteredStones[!_this.ActivePlayer.IsReversed ? filteredStones.length - 1 : 0];
                         var index = _this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
@@ -464,9 +465,10 @@ var GameTable = (function (_super) {
                 if (!isFinished) {
                     var length = dice.Count;
                     for (var j = 0; j < length; j++) {
-                        var fromStone = _this.Stones.filter(function (s, i) {
+                        var filteredStones = _this.Stones.filter(function (s, i) {
                             return (s.UserID == _this.ActivePlayer.UserID) && (s.Count > 0) && _this.checkOneMove(_this.ActivePlayer, dice, i) > -1;
-                        })[0];
+                        });
+                        var fromStone = filteredStones[!_this.ActivePlayer.IsReversed ? filteredStones.length - 1 : 0];
                         var index = _this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
@@ -488,9 +490,10 @@ var GameTable = (function (_super) {
             });
 
             for (var j = 0; j < length; j++) {
-                var fromStone = this.Stones.filter(function (s, i) {
+                var filteredStones = this.Stones.filter(function (s, i) {
                     return (s.UserID == _this.ActivePlayer.UserID) && (s.Count > 0) && _this.checkMoveOut(_this.ActivePlayer, i) != undefined;
-                })[0];
+                });
+                var fromStone = filteredStones[!this.ActivePlayer.IsReversed ? filteredStones.length - 1 : 0];
                 var index = this.Stones.indexOf(fromStone);
 
                 if (index > -1)

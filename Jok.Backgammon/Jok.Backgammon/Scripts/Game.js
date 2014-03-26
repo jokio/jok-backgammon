@@ -201,6 +201,8 @@ var Game = {
         $('#Notification .item.quit').show();
 
         $('#Game .center_title').hide();
+
+        this.stopWaitingAnimation();
     },
 
     onUserAuthenticated: function (userid) {

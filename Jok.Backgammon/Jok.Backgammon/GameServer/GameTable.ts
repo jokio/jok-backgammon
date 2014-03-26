@@ -412,7 +412,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                 for (var j = 0; j < length; j++) {
 
                     if (this.ActivePlayer.KilledStonsCount > 0) {
-                        var fromStone = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkOneMove(this.ActivePlayer, dice, i) > -1)[0];
+                        var filteredStones = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkOneMove(this.ActivePlayer, dice, i) > -1);
+                        var fromStone = filteredStones[!this.ActivePlayer.IsReversed ? filteredStones.length - 1 : 0];
                         var index = this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
@@ -437,7 +438,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                     var length = dice.Count;
                     for (var j = 0; j < length; j++) {
 
-                        var fromStone = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkOneMove(this.ActivePlayer, dice, i) > -1)[0];
+                        var filteredStones = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkOneMove(this.ActivePlayer, dice, i) > -1);
+                        var fromStone = filteredStones[!this.ActivePlayer.IsReversed ? filteredStones.length - 1 : 0];
                         var index = this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
@@ -460,7 +462,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
             for (var j = 0; j < length; j++) {
 
-                var fromStone = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkMoveOut(this.ActivePlayer, i) != undefined)[0];
+                var filteredStones = this.Stones.filter((s, i) => (s.UserID == this.ActivePlayer.UserID) && (s.Count > 0) && this.checkMoveOut(this.ActivePlayer, i) != undefined);
+                var fromStone = filteredStones[!this.ActivePlayer.IsReversed ? filteredStones.length - 1 : 0];
                 var index = this.Stones.indexOf(fromStone);
 
                 if (index > -1)
