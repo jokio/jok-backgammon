@@ -745,7 +745,7 @@ var Game = {
         // უნიკალური ვარიანტების ამოკრეფა
         var outputArray = [];
 
-        for (var i = 0; i < results.length; i++) {
+        for (var i = results.length; i >= 0; i--) {
             if (($.inArray(results[i], outputArray)) == -1) {
                 outputArray.push(results[i]);
             }
