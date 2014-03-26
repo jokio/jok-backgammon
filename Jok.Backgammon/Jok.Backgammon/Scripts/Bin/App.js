@@ -23,7 +23,7 @@ var GamePlayer = (function (_super) {
         this.IsReversed = false;
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;
-        this.ReservedTime = 6 * 60 * 1000;
+        this.ReservedTime = 3 * 60 * 1000;
         this.HasAnyMoveMade = true;
     };
 

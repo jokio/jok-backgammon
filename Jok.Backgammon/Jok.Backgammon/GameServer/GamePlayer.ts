@@ -30,7 +30,7 @@ class GamePlayer extends JP.GamePlayerBase {
         this.IsReversed = false;
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;
-        this.ReservedTime = 6 * 60 * 1000; // 6 წუთი რეზერვი
+        this.ReservedTime = 3 * 60 * 1000; // 3 წუთი რეზერვი
         this.HasAnyMoveMade = true;
     }
 
