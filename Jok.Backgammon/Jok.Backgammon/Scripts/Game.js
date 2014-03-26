@@ -793,17 +793,51 @@ var Game = {
         userObj.removeClass('additional');
         userObj.addClass('active');
         userObj.css('width', '120px');
-        userObj.animate({ width: 0 }, period, function () {
-            if (!additionalPeriod) return;
 
-            userObj.addClass('additional');
-            userObj.css('width', '120px');
-            userObj.animate({ width: 0 }, additionalPeriod);
-        });
+
+        var total = period;
+
+        this.progresbarInterval = setInterval(function () {
+            period -= 300;
+
+            var width = 120 * period / total;
+
+            userObj.width(width);
+
+            if (period < 0) {
+
+                Game.stopWaitingAnimation();
+                if (!additionalPeriod) return;
+
+                userObj.addClass('additional');
+                userObj.css('width', '120px');
+
+                total = additionalPeriod;
+                Game.progresbarInterval = setInterval(function () {
+                    additionalPeriod -= 300;
+
+                    var width = 120 * additionalPeriod / total;
+
+                    userObj.width(width);
+
+                }, 300);
+            }
+
+        }, 300);
+
+        //userObj.animate({ width: 0 }, period, function () {
+        //    if (!additionalPeriod) return;
+
+        //    userObj.addClass('additional');
+        //    userObj.css('width', '120px');
+        //    userObj.animate({ width: 0 }, additionalPeriod);
+        //});
     },
 
-
     stopWaitingAnimation: function () {
+
+        clearInterval(this.progresbarInterval);
+
         $('.player .progresbar').width(0);
         $('.player .progresbar').removeClass('active');
         $('.player .progresbar').stop(true);
