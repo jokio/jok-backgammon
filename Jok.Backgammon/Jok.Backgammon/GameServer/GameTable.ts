@@ -13,13 +13,14 @@ class Commands {
     public static TableState = 'TableState';
     public static RollingResult = 'RollingResult';
     public static MoveRequest = 'MoveRequest';
+    public static FinishResults = 'FinishResults';
 }
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
 
-    public static PLAY_RESERVED_TIME_INTERVAL = 15 * 1000;
+    public static PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
-    public static PLAY_FOR_ROLL_TIME = 15 * 1000;
+    public static PLAY_FOR_ROLL_TIME = 20 * 1000;
 
     public static PLAY_FOR_ROLL_TIME_OFFLINE = 3 * 1000;
 
@@ -164,6 +165,36 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.Status = JP.TableStatus.Finished;
 
         this.send(Commands.TableState, this);
+
+
+        var finishObj = {
+            GameID: process.env.JOK_GAME_ID,
+            GameSecret: process.env.JOK_GAME_SECRET,
+            Channel: this.Channel,
+            Players: [
+                {
+                    UserID: this.LastWinnerPlayer.UserID,
+                    IPAddress: this.LastWinnerPlayer.IPAddress,
+                    Points: this.LastWinnerPlayer.StonesOut * 10,
+                    IsOnline: this.ActivePlayer.IsOnline,
+                    Place: 1
+                },
+                {
+                    UserID: loser.UserID,
+                    IPAddress: loser.IPAddress,
+                    Points: loser.StonesOut * 10,
+                    IsOnline: loser.IsOnline,
+                    Place: 2
+                },
+            ],
+        };
+
+        JP.Helper.FinishGame(finishObj, (err, result) => {
+
+            if (err) return;
+
+            this.send(Commands.FinishResults, result);
+        });
     }
 
     public playersChanged() {
@@ -171,9 +202,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
 
-
     // commands
-    public onMove(userid: number, index: number, moves: number[]) {
+    public onMove(userid: number, index: number, moves: number[], isBot = false) {
 
         var player = this.Players.filter(p=> p.UserID == userid)[0];
         if (!player) return;
@@ -215,6 +245,9 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
             //#endregion
 
+            if (!isBot)
+                this.ActivePlayer.BotPlayCount = 0;
+
 
             if (player.hasKilledStones())
                 player.KilledStonsCount--;
@@ -247,7 +280,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         return this.next();
     }
 
-    public onMoveOut(userid: number, index: number) {
+    public onMoveOut(userid: number, index: number, isBot = false) {
         var player = this.Players.filter(p=> p.UserID == userid)[0];
         if (!player) return;
 
@@ -270,6 +303,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         var usedDice = this.checkMoveOut(player, index);
         if (!usedDice) return;
 
+        if (!isBot)
+            this.ActivePlayer.BotPlayCount = 0;
 
         group.Count--;
         player.StonesOut++;
@@ -316,11 +351,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send(Commands.ActivatePlayer,
-            this.ActivePlayer.UserID,
-            this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE,
-            this.ActivePlayer.IsOnline ? GameTable.PLAY_RESERVED_TIME_INTERVAL : 0);
-
         return true;
     }
 
@@ -365,8 +395,11 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             dice.Count = 2;
         }
 
-        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
-        this.ActivePlayer.send(Commands.MoveRequest);
+        
+        var firstInterval = this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE;
+
+        if (this.ActivePlayer.BotPlayCount > 1)
+            firstInterval /= 2;
 
         // თავიდან აქვს 5 წამი სათამაშოდ, ხოლო შემდეგ რეზერვირებული დროდან 20 წამი.
         clearTimeout(Timers.MoveWaitingTimeout);
@@ -379,11 +412,25 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             if (!this.ActivePlayer.IsOnline)
                 interval = 0;
 
+            if (this.ActivePlayer.BotPlayCount > 0)
+                interval = 0;
+
+
             this.ActivePlayer.WaitingStartTime = Date.now();
             clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(this.makeBotMove.bind(this), interval);
 
-        }, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
+        }, firstInterval);
+
+
+
+        this.send(Commands.ActivatePlayer,
+            this.ActivePlayer.UserID,
+            firstInterval,
+            this.ActivePlayer.IsOnline ? GameTable.PLAY_RESERVED_TIME_INTERVAL : 0);
+
+        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
+        this.ActivePlayer.send(Commands.MoveRequest);
 
 
         if (!this.hasAnyMoves()) {
@@ -402,7 +449,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     makeBotMove() {
 
         this.ActivePlayer.removeReserveTime();
-
+        this.ActivePlayer.BotPlayCount++;
 
         // თუ მოკლულია რამე ჯერ ვაცოცხლებთ მათ
         if (this.ActivePlayer.KilledStonsCount > 0) {
@@ -417,7 +464,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                         var index = this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
-                            this.onMove(this.ActivePlayer.UserID, index, [dice.Number]);
+                            this.onMove(this.ActivePlayer.UserID, index, [dice.Number], true);
                         }
                     }
                 }
@@ -443,7 +490,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                         var index = this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
-                            isFinished = this.onMove(this.ActivePlayer.UserID, index, [dice.Number]);
+                            isFinished = this.onMove(this.ActivePlayer.UserID, index, [dice.Number], true);
                         }
                     }
                 }
@@ -467,7 +514,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                 var index = this.Stones.indexOf(fromStone);
 
                 if (index > -1)
-                    this.onMoveOut(this.ActivePlayer.UserID, index);
+                    this.onMoveOut(this.ActivePlayer.UserID, index, true);
             }
         }
     }

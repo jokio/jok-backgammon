@@ -52,6 +52,8 @@ declare module JP {
         static ChannelSockets(channel: string): any[];
 
         static SaveErrorLog(err);
+
+        static FinishGame(obj, cb);
     }
 
     export class Server {

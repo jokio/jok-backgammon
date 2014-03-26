@@ -20,6 +20,7 @@ var GamePlayer = (function (_super) {
 
     GamePlayer.prototype.init = function () {
         this.StonesOut = 0;
+        this.BotPlayCount = 0;
         this.IsReversed = false;
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;
@@ -69,6 +70,7 @@ var Commands = (function () {
     Commands.TableState = 'TableState';
     Commands.RollingResult = 'RollingResult';
     Commands.MoveRequest = 'MoveRequest';
+    Commands.FinishResults = 'FinishResults';
     return Commands;
 })();
 
@@ -185,6 +187,7 @@ var GameTable = (function (_super) {
     };
 
     GameTable.prototype.finish = function () {
+        var _this = this;
         this.LastWinnerPlayer = this.ActivePlayer;
         var loser = this.getNextPlayer();
 
@@ -193,13 +196,43 @@ var GameTable = (function (_super) {
         this.Status = JP.TableStatus.Finished;
 
         this.send(Commands.TableState, this);
+
+        var finishObj = {
+            GameID: process.env.JOK_GAME_ID,
+            GameSecret: process.env.JOK_GAME_SECRET,
+            Channel: this.Channel,
+            Players: [
+                {
+                    UserID: this.LastWinnerPlayer.UserID,
+                    IPAddress: this.LastWinnerPlayer.IPAddress,
+                    Points: this.LastWinnerPlayer.StonesOut * 10,
+                    IsOnline: this.ActivePlayer.IsOnline,
+                    Place: 1
+                },
+                {
+                    UserID: loser.UserID,
+                    IPAddress: loser.IPAddress,
+                    Points: loser.StonesOut * 10,
+                    IsOnline: loser.IsOnline,
+                    Place: 2
+                }
+            ]
+        };
+
+        JP.Helper.FinishGame(finishObj, function (err, result) {
+            if (err)
+                return;
+
+            _this.send(Commands.FinishResults, result);
+        });
     };
 
     GameTable.prototype.playersChanged = function () {
         this.send(Commands.TableState, this);
     };
 
-    GameTable.prototype.onMove = function (userid, index, moves) {
+    GameTable.prototype.onMove = function (userid, index, moves, isBot) {
+        if (typeof isBot === "undefined") { isBot = false; }
         var player = this.Players.filter(function (p) {
             return p.UserID == userid;
         })[0];
@@ -244,6 +277,9 @@ var GameTable = (function (_super) {
             if (newGroup.UserID != player.UserID && newGroup.Count > 1)
                 continue;
 
+            if (!isBot)
+                this.ActivePlayer.BotPlayCount = 0;
+
             if (player.hasKilledStones())
                 player.KilledStonsCount--;
             else
@@ -272,7 +308,8 @@ var GameTable = (function (_super) {
         return this.next();
     };
 
-    GameTable.prototype.onMoveOut = function (userid, index) {
+    GameTable.prototype.onMoveOut = function (userid, index, isBot) {
+        if (typeof isBot === "undefined") { isBot = false; }
         var player = this.Players.filter(function (p) {
             return p.UserID == userid;
         })[0];
@@ -300,6 +337,9 @@ var GameTable = (function (_super) {
         var usedDice = this.checkMoveOut(player, index);
         if (!usedDice)
             return;
+
+        if (!isBot)
+            this.ActivePlayer.BotPlayCount = 0;
 
         group.Count--;
         player.StonesOut++;
@@ -352,8 +392,6 @@ var GameTable = (function (_super) {
         this.ActivePlayer = this.getNextPlayer();
         this.rolling();
 
-        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE, this.ActivePlayer.IsOnline ? GameTable.PLAY_RESERVED_TIME_INTERVAL : 0);
-
         return true;
     };
 
@@ -398,8 +436,10 @@ var GameTable = (function (_super) {
             dice.Count = 2;
         }
 
-        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
-        this.ActivePlayer.send(Commands.MoveRequest);
+        var firstInterval = this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE;
+
+        if (this.ActivePlayer.BotPlayCount > 1)
+            firstInterval /= 2;
 
         clearTimeout(Timers.MoveWaitingTimeout);
         Timers.MoveWaitingTimeout = setTimeout(function () {
@@ -410,10 +450,18 @@ var GameTable = (function (_super) {
             if (!_this.ActivePlayer.IsOnline)
                 interval = 0;
 
+            if (_this.ActivePlayer.BotPlayCount > 0)
+                interval = 0;
+
             _this.ActivePlayer.WaitingStartTime = Date.now();
             clearTimeout(Timers.MoveWaitingTimeout);
             Timers.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
-        }, this.ActivePlayer.IsOnline ? GameTable.PLAY_FOR_ROLL_TIME : GameTable.PLAY_FOR_ROLL_TIME_OFFLINE);
+        }, firstInterval);
+
+        this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, firstInterval, this.ActivePlayer.IsOnline ? GameTable.PLAY_RESERVED_TIME_INTERVAL : 0);
+
+        this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, true);
+        this.ActivePlayer.send(Commands.MoveRequest);
 
         if (!this.hasAnyMoves()) {
             setTimeout(this.next.bind(this), 2000);
@@ -435,6 +483,7 @@ var GameTable = (function (_super) {
     GameTable.prototype.makeBotMove = function () {
         var _this = this;
         this.ActivePlayer.removeReserveTime();
+        this.ActivePlayer.BotPlayCount++;
 
         if (this.ActivePlayer.KilledStonsCount > 0) {
             this.PendingDices.forEach(function (dice) {
@@ -448,7 +497,7 @@ var GameTable = (function (_super) {
                         var index = _this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
-                            _this.onMove(_this.ActivePlayer.UserID, index, [dice.Number]);
+                            _this.onMove(_this.ActivePlayer.UserID, index, [dice.Number], true);
                         }
                     }
                 }
@@ -472,7 +521,7 @@ var GameTable = (function (_super) {
                         var index = _this.Stones.indexOf(fromStone);
 
                         if (index > -1) {
-                            isFinished = _this.onMove(_this.ActivePlayer.UserID, index, [dice.Number]);
+                            isFinished = _this.onMove(_this.ActivePlayer.UserID, index, [dice.Number], true);
                         }
                     }
                 }
@@ -497,7 +546,7 @@ var GameTable = (function (_super) {
                 var index = this.Stones.indexOf(fromStone);
 
                 if (index > -1)
-                    this.onMoveOut(this.ActivePlayer.UserID, index);
+                    this.onMoveOut(this.ActivePlayer.UserID, index, true);
             }
         }
     };
@@ -576,9 +625,9 @@ var GameTable = (function (_super) {
             return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
         });
     };
-    GameTable.PLAY_RESERVED_TIME_INTERVAL = 15 * 1000;
+    GameTable.PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
-    GameTable.PLAY_FOR_ROLL_TIME = 15 * 1000;
+    GameTable.PLAY_FOR_ROLL_TIME = 20 * 1000;
 
     GameTable.PLAY_FOR_ROLL_TIME_OFFLINE = 3 * 1000;
     return GameTable;

@@ -16,6 +16,8 @@ class GamePlayer extends JP.GamePlayerBase {
 
     public WaitingStartTime;
 
+    public BotPlayCount;
+
 
     constructor(public UserID: number, public IPAddress: string, public IsVIP: boolean, public IsOnline: boolean) {
         super(UserID, IPAddress, IsVIP, IsOnline);
@@ -27,6 +29,7 @@ class GamePlayer extends JP.GamePlayerBase {
 
     public init() {
         this.StonesOut = 0;
+        this.BotPlayCount = 0;
         this.IsReversed = false;
         this.KilledStonsCount = 0;
         this.WaitingStartTime = 0;

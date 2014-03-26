@@ -45,7 +45,7 @@ var JP = {
             if (!Game[command]) return;
             if (typeof Game[command] != 'function') return;
 
-            console.log(command, params);
+            opts.debug && console.log(command, params);
 
             root[command].apply(Game, params);
         });
@@ -107,7 +107,8 @@ var Game = {
             channel: jok.config.channel,
             cbOnline: this.onOnline.bind(this),
             cbOffline: this.onOffline.bind(this),
-            cbEventsRoot: this
+            cbEventsRoot: this,
+            debug: true
         });
 
         $(document).on('click', '#Board .stone_collection', this.UIStoneMove);
@@ -344,6 +345,10 @@ var Game = {
         if (!userID) return;
 
         this.startWaitingAnimation(userID, period, additionalPeriod);
+    },
+
+    onFinishResults: function (results) {
+
     },
 
 
