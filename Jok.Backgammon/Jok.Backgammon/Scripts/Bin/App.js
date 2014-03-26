@@ -500,10 +500,6 @@ var GameTable = (function (_super) {
                     this.onMoveOut(this.ActivePlayer.UserID, index);
             }
         }
-
-        if (this.PendingDices.length && !this.hasAnyMoves()) {
-            this.next();
-        }
     };
 
     GameTable.prototype.checkMoves = function (player, stoneCollection) {

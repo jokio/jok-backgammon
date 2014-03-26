@@ -470,11 +470,6 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
                     this.onMoveOut(this.ActivePlayer.UserID, index);
             }
         }
-
-        // თუ დარჩა რაიმე სათამაშო და არა აქვს სვლა შემდეგზე გადასვლა
-        if (this.PendingDices.length && !this.hasAnyMoves()) {
-            this.next();
-        }
     }
 
     checkMoves(player: GamePlayer, stoneCollection: StonesCollection): boolean {
