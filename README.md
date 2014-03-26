@@ -12,7 +12,7 @@ Features:
 
 
 
-Powered by
+Powered by:
 ----------
 [![Typescript](http://www.typescriptlang.org/content/images/logo_small.png)](http://www.typescriptlang.org/)
 
