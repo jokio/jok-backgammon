@@ -18,5 +18,5 @@ Powered by
 
 [![Node.js](http://nodejs.org/images/logos/nodejs.png)](http://nodejs.org)
 
-[![Heroku](https://d1lpkba4w1baqt.cloudfront.net/heroku-logo-light-300x100.png)](http://heroku.com)
+[![Heroku](https://d1lpkba4w1baqt.cloudfront.net/heroku-logo-light-234x60.png)](http://heroku.com)
 
