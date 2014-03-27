@@ -170,6 +170,7 @@
     <Content Include="Content\fonts\fontawesome-webfont.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Images\backgammon.png" />
     <Content Include="Images\bg_normal.jpg" />
     <Content Include="Images\bg_bold.png" />
     <Content Include="Images\bg_normal_blue.png" />
