@@ -77,13 +77,15 @@
 }
 
 
-#Board .side_container .stone_collection:nth-child(odd) div.triangle {
+#Board .side_container .items_top .stone_collection:nth-child(odd) div.triangle {
     border-top-color: rgba(204, 204, 204, 0.25);
+    margin-top: 1px;
 }
 
 
-#Board .side_container .stone_collection:nth-child(odd) div.triangle_rotated {
+#Board .side_container .stone_collection:nth-child(even) div.triangle_rotated {
     border-bottom-color: rgba(204, 204, 204, 0.25);
+    margin-bottom: 1px;
 }
 
 #Board .stone {
