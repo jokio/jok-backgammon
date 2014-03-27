@@ -125,3 +125,7 @@ body {
 .jokfm_plugin .active_channel {
     float: none;
 }
+
+.player .music_player {
+    display: none!important;
+}
