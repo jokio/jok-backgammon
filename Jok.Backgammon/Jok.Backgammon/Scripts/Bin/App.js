@@ -636,7 +636,8 @@ var GameTable = (function (_super) {
             PendingDices: this.PendingDices,
             Channel: this.Channel,
             Mode: this.Mode,
-            IsVIPTable: this.IsVIPTable
+            IsVIPTable: this.IsVIPTable,
+            LastMovedStoneIndexes: this.LastMovedStoneIndexes
         };
     };
     GameTable.PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;

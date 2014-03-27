@@ -600,6 +600,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             Channel: this.Channel,
             Mode: this.Mode,
             IsVIPTable: this.IsVIPTable,
+            LastMovedStoneIndexes: this.LastMovedStoneIndexes
         }
     }
 }
