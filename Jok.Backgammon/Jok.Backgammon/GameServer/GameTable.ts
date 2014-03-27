@@ -4,10 +4,6 @@
 /// <reference path="gameplayer.ts" />
 
 
-class Timers {
-    public static MoveWaitingTimeout;
-}
-
 class Commands {
     public static ActivatePlayer = 'ActivatePlayer';
     public static TableState = 'TableState';
@@ -34,6 +30,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     public PendingDices: DiceState[];
 
     public LastMovedStoneIndexes: any[];
+
+    private MoveWaitingTimeout = undefined;
 
 
 
@@ -79,7 +77,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         // თუ ყველა გავიდა Timer-ი გასათიშია თორემ აგრძელებს თამაშს კომპიუტერი
         if (this.Players.filter(p => p.IsOnline).length == 0) {
 
-            clearTimeout(Timers.MoveWaitingTimeout);
+            clearTimeout(this.MoveWaitingTimeout);
             this.Players.splice(0, this.Players.length);
             return;
         }
@@ -147,10 +145,10 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         //this.Stones[30].Count = 7;
 
 
-        Timers.MoveWaitingTimeout = undefined;
+        this.MoveWaitingTimeout = undefined;
 
 
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
         this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, GameTable.PLAY_FOR_ROLL_TIME, GameTable.PLAY_RESERVED_TIME_INTERVAL);
 
         this.rolling();
@@ -164,7 +162,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         this.Status = JP.TableStatus.Finished;
 
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
 
 
         var finishObj = {
@@ -198,7 +196,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     }
 
     public playersChanged() {
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
     }
 
 
@@ -330,7 +328,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
     // helper
     next() {
 
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
         this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, false);
 
 
@@ -347,7 +345,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             return;
         }
 
-        clearTimeout(Timers.MoveWaitingTimeout);
+        clearTimeout(this.MoveWaitingTimeout);
         this.ActivePlayer.removeReserveTime();
 
         this.ActivePlayer = this.getNextPlayer();
@@ -404,8 +402,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             firstInterval /= 2;
 
         // თავიდან აქვს 5 წამი სათამაშოდ, ხოლო შემდეგ რეზერვირებული დროდან 20 წამი.
-        clearTimeout(Timers.MoveWaitingTimeout);
-        Timers.MoveWaitingTimeout = setTimeout(() => {
+        clearTimeout(this.MoveWaitingTimeout);
+        this.MoveWaitingTimeout = setTimeout(() => {
 
             var interval = GameTable.PLAY_RESERVED_TIME_INTERVAL;
             if (interval > this.ActivePlayer.ReservedTime)
@@ -419,8 +417,8 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
 
             this.ActivePlayer.WaitingStartTime = Date.now();
-            clearTimeout(Timers.MoveWaitingTimeout);
-            Timers.MoveWaitingTimeout = setTimeout(this.makeBotMove.bind(this), interval);
+            clearTimeout(this.MoveWaitingTimeout);
+            this.MoveWaitingTimeout = setTimeout(this.makeBotMove.bind(this), interval);
 
         }, firstInterval);
 
@@ -588,6 +586,21 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
             return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
         });
+    }
+
+    getState() {
+        return {
+            ID: this.ID,
+            Status: this.Status,
+            Players: this.Players,
+            ActivePlayer: this.ActivePlayer,
+            Stones: this.Stones,
+            LastWinnerPlayer: this.LastWinnerPlayer,
+            PendingDices: this.PendingDices,
+            Channel: this.Channel,
+            Mode: this.Mode,
+            IsVIPTable: this.IsVIPTable,
+        }
     }
 }
 

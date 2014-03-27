@@ -57,12 +57,6 @@ var DiceState = (function () {
     }
     return DiceState;
 })();
-var Timers = (function () {
-    function Timers() {
-    }
-    return Timers;
-})();
-
 var Commands = (function () {
     function Commands() {
     }
@@ -87,6 +81,7 @@ var GameTable = (function (_super) {
         this.Mode = Mode;
         this.MaxPlayersCount = MaxPlayersCount;
         this.IsVIPTable = IsVIPTable;
+        this.MoveWaitingTimeout = undefined;
 
         this.Stones = [];
         this.Players = [];
@@ -122,7 +117,7 @@ var GameTable = (function (_super) {
         if (this.Players.filter(function (p) {
             return p.IsOnline;
         }).length == 0) {
-            clearTimeout(Timers.MoveWaitingTimeout);
+            clearTimeout(this.MoveWaitingTimeout);
             this.Players.splice(0, this.Players.length);
             return;
         }
@@ -178,9 +173,9 @@ var GameTable = (function (_super) {
         this.Stones[31].UserID = opponent.UserID;
         this.Stones[31].Count = 3;
 
-        Timers.MoveWaitingTimeout = undefined;
+        this.MoveWaitingTimeout = undefined;
 
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
         this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, GameTable.PLAY_FOR_ROLL_TIME, GameTable.PLAY_RESERVED_TIME_INTERVAL);
 
         this.rolling();
@@ -195,7 +190,7 @@ var GameTable = (function (_super) {
 
         this.Status = JP.TableStatus.Finished;
 
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
 
         var finishObj = {
             GameID: process.env.JOK_GAME_ID,
@@ -228,7 +223,7 @@ var GameTable = (function (_super) {
     };
 
     GameTable.prototype.playersChanged = function () {
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
     };
 
     GameTable.prototype.onMove = function (userid, index, moves, isBot) {
@@ -369,7 +364,7 @@ var GameTable = (function (_super) {
 
     GameTable.prototype.next = function () {
         var _this = this;
-        this.send(Commands.TableState, this);
+        this.send(Commands.TableState, this.getState());
         this.send(Commands.RollingResult, this.PendingDices, this.ActivePlayer.UserID, false);
 
         if (this.Stones.filter(function (s) {
@@ -390,7 +385,7 @@ var GameTable = (function (_super) {
             return;
         }
 
-        clearTimeout(Timers.MoveWaitingTimeout);
+        clearTimeout(this.MoveWaitingTimeout);
         this.ActivePlayer.removeReserveTime();
 
         this.ActivePlayer = this.getNextPlayer();
@@ -445,8 +440,8 @@ var GameTable = (function (_super) {
         if (this.ActivePlayer.BotPlayCount > 1)
             firstInterval /= 2;
 
-        clearTimeout(Timers.MoveWaitingTimeout);
-        Timers.MoveWaitingTimeout = setTimeout(function () {
+        clearTimeout(this.MoveWaitingTimeout);
+        this.MoveWaitingTimeout = setTimeout(function () {
             var interval = GameTable.PLAY_RESERVED_TIME_INTERVAL;
             if (interval > _this.ActivePlayer.ReservedTime)
                 interval = _this.ActivePlayer.ReservedTime;
@@ -458,8 +453,8 @@ var GameTable = (function (_super) {
                 interval = 0;
 
             _this.ActivePlayer.WaitingStartTime = Date.now();
-            clearTimeout(Timers.MoveWaitingTimeout);
-            Timers.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
+            clearTimeout(_this.MoveWaitingTimeout);
+            _this.MoveWaitingTimeout = setTimeout(_this.makeBotMove.bind(_this), interval);
         }, firstInterval);
 
         this.send(Commands.ActivatePlayer, this.ActivePlayer.UserID, firstInterval, this.ActivePlayer.IsOnline ? GameTable.PLAY_RESERVED_TIME_INTERVAL : 0);
@@ -628,6 +623,21 @@ var GameTable = (function (_super) {
 
             return (!player.IsReversed ? (index > 23) : (index < 8)) || (s.Count == 0);
         });
+    };
+
+    GameTable.prototype.getState = function () {
+        return {
+            ID: this.ID,
+            Status: this.Status,
+            Players: this.Players,
+            ActivePlayer: this.ActivePlayer,
+            Stones: this.Stones,
+            LastWinnerPlayer: this.LastWinnerPlayer,
+            PendingDices: this.PendingDices,
+            Channel: this.Channel,
+            Mode: this.Mode,
+            IsVIPTable: this.IsVIPTable
+        };
     };
     GameTable.PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
 
