@@ -92,6 +92,7 @@
     position: relative;
     margin: 1px 7px;
     z-index: 2;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.28);
 }
 
 #Board .stone.mouse_drag_moving {

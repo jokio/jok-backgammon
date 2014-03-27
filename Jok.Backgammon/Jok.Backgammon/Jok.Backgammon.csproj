@@ -155,6 +155,9 @@
     <Content Include="Audio\button-20.mp3" />
     <Content Include="Audio\button-20.wav" />
     <Content Include="Audio\DicesRolling.mp3" />
+    <Content Include="Audio\DicesRolling.wav" />
+    <Content Include="Audio\PlayerNotification.mp3" />
+    <Content Include="Audio\PlayerNotification.wav" />
     <Content Include="Audio\wall.mp3" />
     <Content Include="Audio\wall.wav" />
     <Content Include="favicon.ico" />

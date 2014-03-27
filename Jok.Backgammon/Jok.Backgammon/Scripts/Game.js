@@ -828,22 +828,22 @@ var Game = {
                     userObj.width(width);
 
                 }, 300);
+
+                if (userID == jok.currentUserID) {
+                    $('#PlayerNotificationAudio')[0].play();
+                    Game.notificatioInterval = setInterval(function () {
+                        $('#PlayerNotificationAudio')[0].play();
+                    }, 3000);
+                }
             }
 
         }, 300);
-
-        //userObj.animate({ width: 0 }, period, function () {
-        //    if (!additionalPeriod) return;
-
-        //    userObj.addClass('additional');
-        //    userObj.css('width', '120px');
-        //    userObj.animate({ width: 0 }, additionalPeriod);
-        //});
     },
 
     stopWaitingAnimation: function () {
 
         clearInterval(this.progresbarInterval);
+        clearInterval(this.notificatioInterval);
 
         $('.player .progresbar').width(0);
         $('.player .progresbar').removeClass('active');
