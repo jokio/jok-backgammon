@@ -551,6 +551,9 @@ var Game = {
             if (count > 10)
                 item.addClass('near2');
 
+            if (count > 15)
+                item.addClass('near3');
+
             container.append(item);
         }
 

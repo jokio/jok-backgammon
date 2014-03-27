@@ -113,3 +113,15 @@ body {
     right: 0px;
     display: none;
 }
+
+
+
+.jokfm_plugin .stop_button {
+    margin-left: auto;
+    margin-top: 2px;
+    background: transparent;
+}
+
+.jokfm_plugin .active_channel {
+    float: none;
+}

@@ -17,13 +17,16 @@ namespace Jok.Backgammon
                         "~/Scripts/engine.io-{version}.js",
                         "~/Scripts/eio-reconnect-{version}.js",
                         "~/Scripts/fastclick.js",
+                        "~/Scripts/fm_plugin.js",
                         "~/Scripts/Game.js"));
 
             bundles.Add(new StyleBundle("~/play/css").Include(
+                      "~/Content/font-awesome.css",
+                      "~/Content/Jok.MusicPlayer.css",
                       "~/Content/Game.Board.css",
                       "~/Content/site.css"));
 
-
+            
 
             bundles.Add(new StyleBundle("~/index/css").Include(
                       //"~/Content/bootstrap.css",
