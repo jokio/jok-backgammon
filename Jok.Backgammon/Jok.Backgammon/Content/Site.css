@@ -135,5 +135,87 @@ body {
 }
 
 .player .music_player {
-    display: none!important;
+    display: none !important;
+}
+
+#Login {
+    text-align: center;
+    margin-top: 70px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 330px;
+    position: relative;
+    z-index: 10;
+    font-family: 'Helvetica Neue', Arial;
+    display: none;
+}
+
+#Login input {
+    padding: 7px 10px;
+    border-radius: 3px;
+    border: 1px solid silver;
+    width: 210px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+#Login .separator {
+    margin-top: 30px;
+    color: silver;
+}
+
+#Login ul.social_connect {
+    margin-top: 20px;
+    width: 240px;
+    padding-bottom: 10px;
+    margin-left: 5px;
+}
+
+#Login ul.social_connect li {
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    list-style: none;
+}
+
+#Login ul.social_connect li:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(235, 235, 235, 0.35);
+    border-radius: 4px;
+}
+
+
+#Login ul.social_connect li a {
+    padding-top: 5px;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    padding: 17px;
+    padding-left: 15px;
+    display: inline-block;
+    padding-right: 14px;
+    padding-bottom: 12px;
+}
+
+#Login ul.social_connect li:hover img {
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.37);
+}
+
+#Login ul.social_connect li img {
+    margin-right: 15px;
+    border: 0px solid white;
+    border-radius: 100%;
+    vertical-align: middle;
+    margin-top: -5px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.37);
+}
+
+#Login ul.social_connect li:hover a {
+    text-decoration: none;
+}
+
+#Login .login_description {
+    color: rgba(245, 222, 179, 0.37);
+    margin-top: 3px;
+    text-align: right;
+    margin-right: 52px;
 }

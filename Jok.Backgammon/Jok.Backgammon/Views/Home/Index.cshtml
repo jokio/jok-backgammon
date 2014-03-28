@@ -110,10 +110,10 @@
             Everybody knows backgammon game, it's very popular and have lot's of funs.
             What we offer is the new way of playing backgammon, it's new thinking, new strategies, new challenges.
         </div>
-        <a href="@Url.Action("Play", "Home")"><img src="~/Images/preview.png" class="preview" /></a>
+        <a href="@Url.Action("Play", "Home", new { exitUrl = Url.Action("Index", "Home") })"><img src="~/Images/preview.png" class="preview" /></a>
 
         <div class="downloads">
-            <a href="@Url.Action("Play", "Home")"><img src="~/Images/webplay.png" /></a>
+            <a href="@Url.Action("Play", "Home", new { exitUrl = Url.Action("Index", "Home") })"><img src="~/Images/webplay.png" /></a>
         </div>
         <div class="info">
             <span class="title">Game Modes:</span><br />

@@ -21,6 +21,22 @@
             }
         </style>
     }
+    @if (ViewBag.NeedAuthorization == true)
+    {
+        <style>
+            #Game,
+            #Loader,
+            #RightDoc,
+            #RightDocOpener,
+            #Info {
+                display: none;
+            }
+
+            #Login {
+                display: block;
+            }
+        </style>
+    }
     <script>
         var jok = {};
 
@@ -42,6 +58,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
 </head>
 <body>
+    <div id="Login">
+        <img src="http://jok.io/content/images/portal/joklogo2.png" /><br /><br />
+        @*<input type="text" placeholder="Nick or Email" /><br />
+        <input type="password" placeholder="Password" />
+        <div class="login_description">
+            Fill credentials and press 'Enter' key
+
+        </div>
+        <div class="separator">
+            <span>OR</span>
+        </div>*@
+        <ul class="social_connect">
+            <li class="click_navigate">
+                <a href="http://jok.io/portal/joinus/facebook?returnUrl=@Request.Url">
+                    <img src="http://jok.io/content/images/social/fb.png" />
+                    Login using Facebook
+                </a>
+            </li>
+            <li class="click_navigate">
+                <a href="http://jok.io/portal/joinus/twitter?returnUrl=@Request.Url">
+                    <img src="http://jok.io/content/images/social/twitter.png" />
+                    Login using Twitter
+                </a>
+            </li>
+            <li class="click_navigate">
+                <a href="http://jok.io/portal/joinus/odnoklasniki?returnUrl=@Request.Url">
+                    <img src="http://jok.io/content/images/social/odno.png" />
+                    Login using Однокласники
+                </a>
+            </li>
+            <li class="click_navigate">
+                <a href="http://jok.io/portal/joinus/vkontaqte?returnUrl=@Request.Url">
+                    <img src="http://jok.io/content/images/social/vk.png" />
+                    Login using Вконтакте
+                </a>
+            </li>
+            <li class="click_navigate">
+                <a href="http://jok.io/portal/joinus/google?returnUrl=@Request.Url">
+                    <img src="http://jok.io/content/images/social/google.png" />
+                    Login using Google
+                </a>
+            </li>
+        </ul>
+    </div>
     <div id="Game">
         <div class="center_title">
             <img src="~/Images/rowena_title.png" />

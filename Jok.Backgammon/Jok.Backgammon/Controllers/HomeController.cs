@@ -11,16 +11,20 @@ namespace Jok.Backgammon.Controllers
 {
     public class HomeController : Controller
     {
-        public  ActionResult Index()
+        public ActionResult Index()
         {
             return View("Index");
         }
 
-        public ActionResult Play(string id, string sid, string source)
+        public ActionResult Play(string id, string sid, string source, string exitUrl)
         {
             var AuthorizationUrl = ConfigurationManager.AppSettings["LoginUrl"] + "?returnUrl=" + Request.Url;
-            var ExitUrl = ConfigurationManager.AppSettings["ExitUrl"];
+            
+            if (String.IsNullOrEmpty(exitUrl))
+                exitUrl = ConfigurationManager.AppSettings["ExitUrl"];
 
+
+            #region Set SID
             if (!String.IsNullOrEmpty(sid))
             {
                 var cookie = Request.Cookies["sid"];
@@ -35,32 +39,24 @@ namespace Jok.Backgammon.Controllers
 
                 Response.Cookies.Remove("sid");
                 Response.Cookies.Add(cookie);
-            }
-            else
-            {
-                sid = Request.Cookies["sid"] == null ? "" : Request.Cookies["sid"].Value;
-            }
 
-            if (String.IsNullOrEmpty(sid))
-                return Redirect(AuthorizationUrl);
+                return RedirectToAction("Play", new { id = id, source = source, exitUrl = exitUrl });
+            }
+            #endregion
+
+
+            sid = Request.Cookies["sid"] == null ? "" : Request.Cookies["sid"].Value;
 
 
             var userInfo = JokAPI.GetUser(sid, Request.UserHostAddress);
-            if (userInfo.IsSuccess != true)
-                return Redirect(AuthorizationUrl + "&getUserInfo=failed");
+            if (String.IsNullOrEmpty(sid) || userInfo.IsSuccess != true)
+                ViewBag.NeedAuthorization = true;
 
             if (!String.IsNullOrEmpty(userInfo.CultureName))
             {
                 Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo(userInfo.CultureName);
                 ViewBag.Language = userInfo.CultureName.Replace('-', '_');
             }
-
-
-            //// sid რომ არ გამოჩნდეს url-ში
-            //if (!String.IsNullOrEmpty(sid))
-            //{
-            //    return RedirectToAction("Play", new { id = id, source = source, debug = Request.Params["debug"] });
-            //}
 
 
             ViewBag.ID = id;
@@ -72,7 +68,7 @@ namespace Jok.Backgammon.Controllers
             ViewBag.IsVIPMember = userInfo.IsVIP;
             ViewBag.Channel = (!String.IsNullOrWhiteSpace(id) && id.ToLower() == "private") ? ShortGuid.NewGuid().ToString() : id;
             ViewBag.AuthorizationUrl = AuthorizationUrl;
-            ViewBag.ExitUrl = ExitUrl;
+            ViewBag.ExitUrl = exitUrl;
 
 
             return View();
