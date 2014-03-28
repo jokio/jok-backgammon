@@ -71,6 +71,14 @@ body {
     display: block;
 }
 
+.player .progresbar .seconds {
+    position: absolute;
+    left: -35px;
+    top: 7px;
+    width: 30px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.4);
+}
 
 
 #Game .center_title {

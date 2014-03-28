@@ -812,10 +812,15 @@ var Game = {
 
         var total = period;
 
+        $('.player[data-userid=' + userID + '] .progresbar .seconds').html(Math.round(period / 1000));
+
+
         this.progresbarInterval = setInterval(function () {
             period -= 300;
 
             var width = 120 * period / total;
+
+            $('.player[data-userid=' + userID + '] .progresbar .seconds').html(Math.round(period / 1000));
 
             userObj.width(width);
 
@@ -827,13 +832,23 @@ var Game = {
                 userObj.addClass('additional');
                 userObj.css('width', '120px');
 
+                $('.player[data-userid=' + userID + '] .progresbar .seconds').html(Math.round(additionalPeriod / 1000));
+
                 total = additionalPeriod;
                 Game.progresbarInterval = setInterval(function () {
+
+                    if (additionalPeriod < 0) {
+                        Game.stopWaitingAnimation();
+                        return;
+                    }
+
                     additionalPeriod -= 300;
 
                     var width = 120 * additionalPeriod / total;
 
                     userObj.width(width);
+
+                    $('.player[data-userid=' + userID + '] .progresbar .seconds').html(Math.round(additionalPeriod / 1000));
 
                 }, 300);
 
@@ -856,6 +871,9 @@ var Game = {
         $('.player .progresbar').width(0);
         $('.player .progresbar').removeClass('active');
         $('.player .progresbar').stop(true);
+
+        $('.player .progresbar .seconds').html('');
+
     },
 
 };
@@ -870,6 +888,8 @@ game.init = function () {
 
     $('#Player1').append('<div class="added_rating">+23.33 Rating</div>');
     $('#Player2').append('<div class="offline">Offline</div>');
+
+    $('.player .progresbar').append('<div class="seconds">');
 }
 
 Game.init();
