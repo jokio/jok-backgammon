@@ -137,6 +137,12 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
         //    this.Stones[i].Count = 2;
         //}
 
+
+        //for (var i = 28; i < 32; i++) {
+        //    this.Stones[i].UserID = this.ActivePlayer.UserID;
+        //    this.Stones[i].Count = 2;
+        //}
+
         //this.Stones[1].UserID = opponent.UserID;
         //this.Stones[1].Count = 7;
 
@@ -497,7 +503,7 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
             });
 
             if (isFinished) {
-                break;
+                return;
             }
         }
 

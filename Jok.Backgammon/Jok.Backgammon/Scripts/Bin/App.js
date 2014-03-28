@@ -527,7 +527,7 @@ var GameTable = (function (_super) {
             });
 
             if (isFinished) {
-                break;
+                return;
             }
         }
 
