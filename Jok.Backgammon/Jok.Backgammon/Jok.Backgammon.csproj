@@ -195,6 +195,7 @@
     <Content Include="Images\rowena_title.png" />
     <Content Include="Images\Tutorial\board.png" />
     <Content Include="Images\Tutorial\eight_part.png" />
+    <Content Include="Images\Tutorial\game_logo.png" />
     <Content Include="Images\Tutorial\hello.jpg" />
     <Content Include="Images\Tutorial\possible_moves.png" />
     <Content Include="Images\Tutorial\three_pair_dices.png" />
