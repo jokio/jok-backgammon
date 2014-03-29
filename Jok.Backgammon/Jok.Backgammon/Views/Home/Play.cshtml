@@ -114,6 +114,7 @@
                     @for (int i = 0; i < 8; i++)
                     {
                         <div data-id="@(8 + 7 - i)" class="stone_collection">
+                            <div class="number">@(16 + i + 1)</div>
                             <div class="triangle">
                             </div>
                         </div>
@@ -123,6 +124,7 @@
                     @for (int i = 0; i < 8; i++)
                     {
                         <div data-id="@(16 + i)" class="stone_collection">
+                            <div class="number">@(8 + 7 - i + 1)</div>
                             <div class="triangle_rotated"></div>
                         </div>
                     }
@@ -141,6 +143,7 @@
                     @for (int i = 0; i < 8; i++)
                     {
                         <div data-id="@(7 - i)" class="stone_collection">
+                            <div class="number">@(24 + i + 1)</div>
                             <div class="triangle"></div>
                         </div>
                     }
@@ -149,6 +152,7 @@
                     @for (int i = 0; i < 8; i++)
                     {
                         <div data-id="@(24 + i)" class="stone_collection">
+                            <div class="number">@(7 - i + 1)</div>
                             <div class="triangle_rotated"></div>
                         </div>
                     }
