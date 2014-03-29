@@ -284,6 +284,7 @@ var Game = {
 
             case 3: {
 
+                $(document).scrollTop(0);
                 this.stopWaitingAnimation();
 
                 var currentPlayer = table.Players[0].UserID == jok.currentUserID ? table.Players[0] : table.Players[1];
