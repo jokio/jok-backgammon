@@ -8,8 +8,7 @@
     <link href='http://fonts.googleapis.com/css?family=Josefin+Sans' rel='stylesheet' type='text/css'>
     @Styles.Render("~/index/css")
     <script src="~/Scripts/jquery-1.10.2.js"></script>
-</head>
-<body>
+
     <style>
         .root {
             width: 600px;
@@ -71,6 +70,7 @@
 
         .root .downloads {
             text-align: center;
+            margin-bottom: 100px;
         }
 
         .root .downloads .disabled {
@@ -86,7 +86,20 @@
             border: 1px solid rgb(233, 233, 233) !important;
             border-radius: 8px;
         }
+
+        #Github {
+            width: 100%;
+            border: 0px;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            height: 90px;
+        }
     </style>
+</head>
+<body>
+    <iframe id="Github" src="http://play.jok.io/github?visitUrl=https://github.com/jokio/jok-backgammon"></iframe>
+
     <div id="fb-root"></div>
     <script>
         (function (d, s, id) {
@@ -96,7 +109,7 @@
             js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=528732163816152";
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));</script>
-    @{Html.RenderPartial("_GithubLogo");}
+
     <div class="root">
         <div class="header">
             <img src="~/Images/backgammon.png" class="logo" />
@@ -108,12 +121,17 @@
         <div class="info">
             <span class="title">Story:</span><br />
             Everybody knows backgammon game, it's very popular and have lot's of funs.
-            What we offer is the new way of playing backgammon, it's new thinking, new strategies, new challenges.
+            What we offer is the new way of playing backgammon, it's new thinking, new strategies, new challenges.<br />
+            <br />
+            Please visit <a href="@Url.Action("Tutorial", new { exitUrl = Url.Action("Index") })">Game Tutorial</a> first.
         </div>
-        <a href="@Url.Action("Play", "Home", new { exitUrl = Url.Action("Index", "Home") })"><img src="~/Images/preview.png" class="preview" /></a>
+        <a href="@Url.Action("Play", new { exitUrl = Url.Action("Index") })"><img src="~/Images/preview.png" class="preview" /></a>
 
         <div class="downloads">
-            <a href="@Url.Action("Play", "Home", new { exitUrl = Url.Action("Index", "Home") })"><img src="~/Images/webplay.png" /></a>
+            <a class="btn btn-default btn-lg btn-success" style="min-width: 200px;" href="@Url.Action("Play", new { exitUrl = Url.Action("Index") })">Play</a>
+            <a class="btn btn-default btn-lg btn-warning" style="min-width: 200px;" href="@Url.Action("Play", new { id = Guid.NewGuid(), exitUrl = Url.Action("Index") })">Play with friend</a>
+
+            @*<a href="@Url.Action("Play", new { exitUrl = Url.Action("Index") })"><img src="~/Images/webplay.png" /></a>*@
         </div>
         <div class="info">
             <span class="title">Game Modes:</span><br />
@@ -131,7 +149,7 @@
             </ul>
         </div>
         <div class="info">
-            <span class="title">Your comments:</span><br />
+            <span class="title">Your feedback:</span><br />
             <div class="comments">
                 <div class="fb-comments" data-href="http://backgammon.jok.io" data-width="520" data-numposts="5" data-colorscheme="light"></div>
             </div>

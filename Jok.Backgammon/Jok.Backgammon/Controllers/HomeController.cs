@@ -73,5 +73,26 @@ namespace Jok.Backgammon.Controllers
 
             return View();
         }
+
+        public ActionResult Tutorial(string culture, string exitUrl)
+        {
+            if (String.IsNullOrWhiteSpace(exitUrl))
+                exitUrl = System.Configuration.ConfigurationManager.AppSettings["ExitUrl"];
+
+            ViewBag.ExitUrl = exitUrl;
+
+            if (!String.IsNullOrWhiteSpace(culture))
+            {
+                try
+                {
+                    Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo(culture);
+                    ViewBag.Start = true;
+                }
+                catch { }
+            }
+
+
+            return View();
+        }
     }
 }

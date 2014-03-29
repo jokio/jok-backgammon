@@ -62,7 +62,7 @@ declare module JP {
 
         createTable(user, channel, mode): GameTable;
 
-        static Start<TGamePlayer extends GamePlayerBase, TGameTable extends GameTableBase<TGamePlayer>>(port?, TGameTable?, TGamePlayer?): Server;
+        static Start<TGamePlayer extends GamePlayerBase, TGameTable extends GameTableBase<GamePlayer>>(port?, TGameTable?, TGamePlayer?): Server;
     }
 
     export enum TableStatus {
@@ -74,7 +74,7 @@ declare module JP {
 }
 
 
-interface Array {
+interface Array<T> {
     unique(): any[];
     contains(v): boolean;
     remove(item: any): boolean;

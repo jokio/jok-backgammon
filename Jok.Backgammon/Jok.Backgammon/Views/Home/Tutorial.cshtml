@@ -1,0 +1,285 @@
+﻿@{ Layout = null; }
+@using R = Resources.Tutorial
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@R.A001</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    <meta property="og:image" content="http://matrix.jok.io/Images/matrix2.png" />
+    @Scripts.Render("~/tutorial/js")
+    <style>
+        body {
+            background: white;
+        }
+
+        #ExitButton {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: silver;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        #ExitButton img {
+            opacity: .3;
+            margin-top: -4px;
+        }
+
+        #ExitButton:hover {
+            text-decoration: none;
+            text-decoration: none;
+            color: gray;
+        }
+
+        #ExitButton:hover img {
+            opacity: .7;
+        }
+
+        #Root {
+            position: absolute;
+            width: 800px;
+            top: 50%;
+            left: 50%;
+            margin-top: -300px;
+            margin-left: -400px;
+        }
+
+        #Root .visual_box {
+            height: 510px;
+            text-align: center;
+        }
+
+        #Root .text_message {
+            position: absolute;
+            min-height: 70px;
+            left: 110px;
+            right: 110px;
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        #typed-cursor {
+            display: none;
+        }
+
+        #Root .pic {
+            border-radius: 5px;
+            max-height: 100%;
+        }
+
+        #Root .fb_like {
+            display: none;
+        }
+
+        #Root .language_selector {
+            width: 270px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 190px;
+        }
+
+        #Root .language_selector a {
+            margin-bottom: 10px;
+        }
+
+        #ResumePlayerButton {
+            display: none;
+        }
+
+        #Hello {
+            position: fixed;
+            bottom: 0px;
+            right: 0px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <a id="ExitButton" href="@ViewBag.ExitUrl"><img src="~/Images/back-button-black.png" /> @R.A002</a>
+
+    <div id="Root">
+        <div class="visual_box">
+            <img class="pic" />
+            <div class="fb_like">
+                <a href="@Url.Action("HowToPlay", "Home", new { culture = "" })" class="btn btn-default">@R.A003</a>
+            </div>
+            @if (ViewBag.Start != true)
+            {
+                <div class="language_selector">
+                    <a href="@Url.Action("Tutorial", new { culture = "en-US", exitUrl = ViewBag.ExitUrl })" class="btn btn-default btn-block">English</a>
+                    @*<a href="@Url.Action("Tutorial", new { culture = "ru-RU", exitUrl = ViewBag.ExitUrl })" class="btn btn-default btn-block">Русский</a>*@
+                    <a href="@Url.Action("Tutorial", new { culture = "ka-GE", exitUrl = ViewBag.ExitUrl })" class="btn btn-default btn-block">ქართულად</a>
+                </div>
+            }
+        </div>
+        <div class="text_message">
+        </div>
+        @if (ViewBag.Start == true)
+        {
+            <ul class="pager">
+                <li class="next">
+                    <a href="javascript:void(0);" id="PausePlayerButton">@R.A004</a>
+                    <a href="javascript:void(0);" id="ResumePlayerButton">@R.A005</a>
+                </li>
+            </ul>
+        }
+    </div>
+    <img id="Hello" src="~/Images/Tutorial/hello.jpg" />
+    @if (ViewBag.Start == true)
+    {
+        <audio id="JokAudioPlayer"><source src="" type="audio/mp3" /></audio>
+        <script>
+
+            var player = new MediaElement('JokAudioPlayer', {
+                //
+                plugins: ['flash'],
+                // specify to force MediaElement to use a particular video or audio type
+                type: '',
+                // path to Flash and Silverlight plugins
+                pluginPath: '/Scripts/FM/',
+                // name of flash file
+                flashName: 'flashmediaelement.swf'
+            });
+
+            setTimeout(function () {
+                async.series([
+                    function (cb) {
+                        $('#Hello').show('fast');
+                        setTimeout(function () { $('#Hello').hide('fast'); }, 2000);
+                        showPic('game_logo.png');
+                        playIt('@R.A010.', cb);
+                    },
+                    function (cb) {
+                        showPic('board.png');
+                        playIt('@R.A011.', cb);
+                    },
+                    function (cb) {
+                        showPic('board.png');
+                        playIt('@R.A012.', cb);
+                    },
+                    function (cb) {
+                        showPic('two_pair_dices.png', false);
+                        playIt('@R.A013.', function () {
+                            showPic('three_pair_dices.png', false);
+                            playIt('@R.A0131.', cb);
+                        });
+                    },
+                    function (cb) {
+                        showPic('eight_part.png', false);
+                        playIt('@R.A014.', cb);
+                    },
+                    function (cb) {
+                        showPic('possible_moves.png', false);
+                        playIt('@R.A015.', cb);
+                    },
+                    function (cb) {
+                        showPic('possible_moves.png', false);
+                        playIt('@R.A016', cb);
+                    },
+                    function (cb) {
+                        showPic('thumbs_up.jpg', false);
+                        playIt('@R.A017.', cb);
+                    },
+                    @*function (cb) {
+                    playIt('@R.A018.', cb);
+                },
+                function (cb) {
+                    showPic('rigeba.png', false);
+                    playIt('@R.A019.', cb);
+                },
+                function (cb) {
+                    showPic('good_taken.png', false);
+                    playIt('@R.A020', function () {
+                        playIt('@R.A0201.', cb);
+                    });
+                },
+                function (cb) {
+                    showPic('pasi.png', false);
+                    playIt('@R.A021', function () {
+                        playIt('@R.A0211.', cb);
+                    });
+                },
+                function (cb) {
+                    showPic('dring.png', false);
+                    playIt('@R.A022.', cb);
+                },
+                function (cb) {
+                    showPic('focused_dring_value.png', false);
+                    playIt('@R.A023.', cb);
+                },
+                function (cb) {
+                    showPic('sections.png', false);
+                    playIt('@R.A024.', cb);
+                },
+                function (cb) {
+                    playIt('@R.A025', function () {
+                        playIt('@R.A0251.', cb);
+                    });
+                },
+                function (cb) {
+                    playIt('@R.A026.', cb);
+                },
+                function (cb) {
+                    showPic('winner.png', false);
+                    playIt('@R.A027.', cb);
+                },
+                function (cb) {
+                    showPic('thumbs_up.jpg');
+                    playIt('@R.A028.', cb);
+                },
+                function (cb) {
+                    playIt('@R.A029.', cb);
+
+                    $('#Root .visual_box .fb_like').show();
+                    $('#PausePlayerButton').hide();
+                    $('#ResumePlayerButton').hide();
+                },*@
+                ]);
+            }, 1000);
+
+
+
+            function playIt(text, cb) {
+                $('#Root .text_message').html(text);
+
+
+                var audioEnded = function (e) {
+                    player.removeEventListener('ended', audioEnded);
+                    cb(null);
+                };
+
+                player.addEventListener('ended', audioEnded, false);
+
+                player.src = '';
+                player.src = 'http://api.jok.io/portal/speech?text=' + text;
+                player.play();
+            }
+
+
+            $('#PausePlayerButton').on('click', function () {
+                $('#PausePlayerButton').hide();
+                $('#ResumePlayerButton').show();
+                player.pause();
+            });
+
+            $('#ResumePlayerButton').on('click', function () {
+                $('#PausePlayerButton').show();
+                $('#ResumePlayerButton').hide();
+                player.play();
+            });
+
+            function showPic(src, enableFadeEffect) {
+
+                if (enableFadeEffect == undefined)
+                    enableFadeEffect = true
+
+                $('#Root .pic').css('opacity', 0);
+                $('#Root .pic').attr('src', '/Images/Tutorial/' + src);
+                $('#Root .pic').fadeTo(enableFadeEffect ? 'fast' : 0, 1);
+            }
+        </script>
+    }
+</body>
+</html>
