@@ -326,6 +326,11 @@ class GameTable extends JP.GameTableBase<GamePlayer> {
 
         if (this.Players.filter(p => p.IsOnline).length != 2) return;
 
+        player.IsReady = true;
+
+        if (this.Players.filter(p=> p.IsReady).length != 2) return;
+
+
         this.start();
     }
 

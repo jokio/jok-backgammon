@@ -181,6 +181,8 @@ var Game = {
     },
 
     UIPlayAgain: function () {
+        $(this).hide();
+        jok.chat.send('Let\'s play again');
         Game.gameService.sendCommand('PlayAgain');
     },
 
@@ -292,6 +294,7 @@ var Game = {
                 if (opponentPlayer) {
                     $('#Notification .item.table_finish_winner span').html(jok.players[table.LastWinnerPlayer.UserID].nick);
                     $('#Notification .item.table_finish_winner').show();
+                    $('#Notification .item.table_finish_winner button').show();
                 }
                 else {
                     $('#Notification .item.table_finish_winner2 span').html(jok.players[table.LastWinnerPlayer.UserID].nick);

@@ -18,6 +18,8 @@ class GamePlayer extends JP.GamePlayerBase {
 
     public BotPlayCount;
 
+    public IsReady;
+
 
     constructor(public UserID: number, public IPAddress: string, public IsVIP: boolean, public IsOnline: boolean) {
         super(UserID, IPAddress, IsVIP, IsOnline);
@@ -35,6 +37,7 @@ class GamePlayer extends JP.GamePlayerBase {
         this.WaitingStartTime = 0;
         this.ReservedTime = 3 * 60 * 1000; // 3 წუთი რეზერვი
         this.HasAnyMoveMade = true;
+        this.IsReady = false;
     }
 
     public removeReserveTime() {

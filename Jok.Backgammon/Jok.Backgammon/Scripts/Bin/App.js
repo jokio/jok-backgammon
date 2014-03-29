@@ -26,6 +26,7 @@ var GamePlayer = (function (_super) {
         this.WaitingStartTime = 0;
         this.ReservedTime = 3 * 60 * 1000;
         this.HasAnyMoveMade = true;
+        this.IsReady = false;
     };
 
     GamePlayer.prototype.removeReserveTime = function () {
@@ -356,6 +357,13 @@ var GameTable = (function (_super) {
 
         if (this.Players.filter(function (p) {
             return p.IsOnline;
+        }).length != 2)
+            return;
+
+        player.IsReady = true;
+
+        if (this.Players.filter(function (p) {
+            return p.IsReady;
         }).length != 2)
             return;
 
