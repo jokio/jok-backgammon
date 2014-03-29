@@ -154,6 +154,14 @@
     margin-top: -25px;
 }
 
+#Board .items_top .stone.near4 {
+    margin-bottom: -29px;
+}
+
+#Board .items_bottom .stone.near4 {
+    margin-top: -29px;
+}
+
 #Board .stone.opponent {
     border: 1px solid rgb(80, 80, 80);
     background: gray;
@@ -184,10 +192,10 @@
     position: absolute;
     right: 10px;
     left: 10px;
-    top: 10px;
-    bottom: 10px;
+    top: 220px;
+    bottom: 250px;
     color: rgba(203, 255, 216, 1);
-    padding-top: 410px;
+    padding-top: 48px;
     font-size: 19px;
     font-family: Arial;
     cursor: pointer;
@@ -332,4 +340,36 @@
 
 #Board .opponent_killed_stones .stone {
     color: silver;
+}
+
+
+#Board .side_container .items_bottom .stone_collection.player_stones_out {
+    position: absolute;
+    left: 440px;
+    margin-right: -40px;
+    bottom: -20px;
+    min-height: 10px;
+}
+
+#Board .side_container .items_top .stone_collection.opponent_stones_out {
+    position: absolute;
+    left: 440px;
+    margin-right: -40px;
+    top: -20px;
+}
+
+#Board .side_container .items_bottom .stone_collection.player_stones_out .stone:last-child {
+    height: 25px;
+    padding-top: 10px;
+    color: gray;
+    font-family: Arial;
+    font-size: 12px;
+}
+
+#Board .side_container .items_top .stone_collection.opponent_stones_out .stone:last-child {
+    height: 25px;
+    padding-top: 10px;
+    color: silver;
+    font-family: Arial;
+    font-size: 12px;
 }

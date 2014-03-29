@@ -220,6 +220,9 @@ var Game = {
         $('#Game .center_title').hide();
         $('#Player2 .offline').hide();
 
+        $('#Board .player_stones_out').empty();
+        $('#Board .opponent_stones_out').empty();
+
 
         jok.chat.join(table.ID);
 
@@ -261,6 +264,7 @@ var Game = {
                 $('#Game .center_title').show();
 
                 this.setState(table.Stones, currentPlayer.IsReversed, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount, isMove);
+                this.setOutStones(currentPlayer.StonesOut, opponentPlayer.StonesOut);
                 break;
             }
 
@@ -279,6 +283,7 @@ var Game = {
                 $('#Player2 .offline').show();
 
                 this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
+                this.setOutStones(currentPlayer.StonesOut, opponentPlayer.StonesOut);
                 break;
             }
 
@@ -300,9 +305,11 @@ var Game = {
                 else {
                     $('#Notification .item.table_finish_winner2 span').html(jok.players[table.LastWinnerPlayer.UserID].nick);
                     $('#Notification .item.table_finish_winner2').show();
+                    $('#Player2 .offline').show();
                 }
 
                 this.setState(table.Stones, table.Players[1].UserID == jok.currentUserID, currentPlayer.KilledStonsCount, opponentPlayer.KilledStonsCount);
+                this.setOutStones(currentPlayer.StonesOut, opponentPlayer && opponentPlayer.StonesOut);
 
                 if (currentPlayer && opponentPlayer && (currentPlayer.WinsCount > 0 || opponentPlayer.WinsCount > 0)) {
                     $('#Player1').find('.wins').html(currentPlayer.WinsCount);
@@ -399,6 +406,22 @@ var Game = {
         }
 
         this.currentPlayerHasKilledStones = playerKilledStones > 0;
+    },
+
+    setOutStones: function(playerOutStonesCount, opponentOutStonesCount){
+        if (playerOutStonesCount > 0) {
+            for (var i = 0; i < playerOutStonesCount - 1; i++) {
+                $('#Board .player_stones_out').append('<div class="stone near4">');
+            }
+            $('#Board .player_stones_out').append('<div class="stone near4">' + playerOutStonesCount + '</div>');
+        }
+
+        if (opponentOutStonesCount > 0) {
+            for (var i = 0; i < opponentOutStonesCount - 1; i++) {
+                $('#Board .opponent_stones_out').append('<div class="stone opponent near4">');
+            }
+            $('#Board .opponent_stones_out').append('<div class="stone opponent near4">' + opponentOutStonesCount + '</div>');
+        }
     },
 
     setDices: function (dices, userid, shakeEffect) {
