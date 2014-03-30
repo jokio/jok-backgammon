@@ -14,7 +14,7 @@ class Commands {
 
 class GameTable extends JP.GameTableBase<GamePlayer> {
 
-    public static PLAY_RESERVED_TIME_INTERVAL = 20 * 1000;
+    public static PLAY_RESERVED_TIME_INTERVAL = 40 * 1000;
 
     public static PLAY_FOR_ROLL_TIME = 20 * 1000;
 
