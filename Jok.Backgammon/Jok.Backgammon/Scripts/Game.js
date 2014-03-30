@@ -917,6 +917,8 @@ game.init = function () {
     $('#Player2').append('<div class="offline">Offline</div>');
 
     $('.player .progresbar').append('<div class="seconds">');
+
+    $('.item.waiting_opponent,.item.share_friends').append('<div class="fb-share-button" data-href="http://bg.jok.io/play/' + jok.config.channel + '" data-type="button"></div>');
 }
 
 Game.init();

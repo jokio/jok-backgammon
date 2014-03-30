@@ -5,6 +5,12 @@
 <html lang="en-us">
 <head>
     <title>Backgammon</title>
+
+    <meta property="fb:app_id" content="528732163816152" />
+    <meta property="og:title" content="8 Point Backgammon Game" />
+    <meta property="og:description" content="Click & Play!" />
+    <meta property="og:image" content="http://bg.jok.io/Images/preview.png" />
+
     <link href="http://play.jok.io/css?ignore=1" rel="stylesheet" />
     @Styles.Render("~/play/css")
     @if (ViewBag.IsMobileApp == true)
@@ -58,6 +64,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
 </head>
 <body>
+    <div id="fb-root"></div>
+    <script>
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=528732163816152";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
     <div id="Login">
         <img src="http://jok.io/content/images/portal/joklogo2.png" /><br /><br />
         @*<input type="text" placeholder="Nick or Email" /><br />
