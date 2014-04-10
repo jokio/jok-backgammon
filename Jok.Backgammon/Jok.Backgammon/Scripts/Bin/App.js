@@ -648,7 +648,7 @@ var GameTable = (function (_super) {
             LastMovedStoneIndexes: this.LastMovedStoneIndexes
         };
     };
-    GameTable.PLAY_RESERVED_TIME_INTERVAL = 40 * 1000;
+    GameTable.PLAY_RESERVED_TIME_INTERVAL = 60 * 1000;
 
     GameTable.PLAY_FOR_ROLL_TIME = 20 * 1000;
 
