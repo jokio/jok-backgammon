@@ -2,7 +2,7 @@
         "name": "Jok.Backgammon.Server",
         "version": "0.1.0",
         "dependencies": {
-				"jok-play": "0.1.0",
+				"jok-play": "0.1.1",
 				"node-uuid" : "*"
         },
         "engines": {
